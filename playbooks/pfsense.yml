@@ -1,0 +1,29 @@
+# pfSense Firewall Configuration
+---
+- name: Configure pfSense Firewalls
+  hosts: pfsense
+  gather_facts: false
+
+  pre_tasks:
+    - name: Check connectivity to pfSense
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 443
+        timeout: 10
+      delegate_to: localhost
+
+  roles:
+    - role: pfsense_base
+      tags: [pfsense, base]
+    - role: pfsense_interfaces
+      tags: [pfsense, interfaces]
+    - role: pfsense_firewall
+      tags: [pfsense, firewall]
+    - role: pfsense_services
+      tags: [pfsense, services]
+
+  post_tasks:
+    - name: Display pfSense configuration summary
+      ansible.builtin.debug:
+        msg: "pfSense {{ inventory_hostname }} configured successfully"
+

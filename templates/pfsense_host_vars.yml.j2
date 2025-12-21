@@ -1,0 +1,87 @@
+# {{ inventory_hostname }} - pfSense Configuration
+# Auto-generated from device on {{ lookup('pipe', 'date') }}
+# DO NOT EDIT MANUALLY - changes will be overwritten on next pull
+---
+# Override to prevent re-pulling
+pfsense_config_source: pulled
+
+# System Configuration
+pfsense_system:
+{% if pulled_config.ansible_facts.system is defined %}
+  hostname: "{{ pulled_config.ansible_facts.system.hostname | default(inventory_hostname_short) }}"
+  domain: "{{ pulled_config.ansible_facts.system.domain | default(disconet.domain) }}"
+  timezone: "{{ pulled_config.ansible_facts.system.timezone | default('America/Los_Angeles') }}"
+{% if pulled_config.ansible_facts.system.dns_servers is defined and pulled_config.ansible_facts.system.dns_servers | length > 0 %}
+  dns_servers:
+{% for dns in pulled_config.ansible_facts.system.dns_servers %}
+    - {{ dns }}
+{% endfor %}
+{% endif %}
+{% else %}
+  hostname: "{{ inventory_hostname_short }}"
+  domain: "{{ disconet.domain }}"
+{% endif %}
+
+# Interface Configuration
+pfsense_interfaces:
+{% if pulled_config.ansible_facts.interfaces is defined %}
+{% for iface_name, iface in pulled_config.ansible_facts.interfaces.items() %}
+  {{ iface_name }}:
+    enable: {{ iface.enable | default(true) | lower }}
+{% if iface.ipaddr is defined and iface.ipaddr %}
+    ipaddr: "{{ iface.ipaddr }}"
+{% endif %}
+{% if iface.subnet is defined and iface.subnet %}
+    subnet: {{ iface.subnet }}
+{% endif %}
+{% if iface.descr is defined %}
+    description: "{{ iface.descr }}"
+{% endif %}
+{% if iface['if'] is defined %}
+    interface: "{{ iface['if'] }}"
+{% endif %}
+{% endfor %}
+{% else %}
+  # No interfaces pulled
+  {}
+{% endif %}
+
+# Firewall Aliases
+pfsense_aliases:
+{% if pulled_config.ansible_facts.aliases is defined and pulled_config.ansible_facts.aliases | length > 0 %}
+{% for alias in pulled_config.ansible_facts.aliases %}
+  - name: "{{ alias.name }}"
+    type: {{ alias.type | default('host') }}
+    address: "{{ alias.address | default('') }}"
+{% if alias.descr is defined %}
+    description: "{{ alias.descr }}"
+{% endif %}
+{% endfor %}
+{% else %}
+  []
+{% endif %}
+
+# Firewall Rules
+pfsense_rules:
+{% if pulled_config.ansible_facts.rules is defined and pulled_config.ansible_facts.rules | length > 0 %}
+{% for rule in pulled_config.ansible_facts.rules %}
+  - interface: "{{ rule.interface | default('lan') }}"
+    action: {{ rule.type | default('pass') }}
+    protocol: {{ rule.protocol | default('any') }}
+{% if rule.source is defined %}
+    source: "{{ rule.source }}"
+{% endif %}
+{% if rule.destination is defined %}
+    destination: "{{ rule.destination }}"
+{% endif %}
+{% if rule.destination_port is defined %}
+    destination_port: "{{ rule.destination_port }}"
+{% endif %}
+{% if rule.descr is defined %}
+    description: "{{ rule.descr }}"
+{% endif %}
+    enabled: {{ rule.disabled | default(false) | ternary(false, true) | lower }}
+{% endfor %}
+{% else %}
+  []
+{% endif %}

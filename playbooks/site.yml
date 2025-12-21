@@ -1,0 +1,19 @@
+# Disconet Full Site Deployment
+---
+- name: Deploy Disconet Infrastructure
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg: "Starting Disconet infrastructure deployment"
+
+- name: Deploy pfSense Firewalls
+  ansible.builtin.import_playbook: pfsense.yml
+
+- name: Deploy Zyxel Switches
+  ansible.builtin.import_playbook: zyxel.yml
+
+- name: Deploy Proxmox Infrastructure
+  ansible.builtin.import_playbook: proxmox.yml
+

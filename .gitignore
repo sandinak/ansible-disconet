@@ -1,0 +1,49 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Ansible
+*.retry
+.cache/
+collections/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets (never commit these)
+*.vault
+vault.yml
+secrets.yml
+**/host_vars/*/vault.yml
+**/group_vars/*/vault.yml
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+*.tar.gz
+
+# Backups - keep latest only (timestamped backups are local)
+backups/**/*_2*.json
+backups/**/*_2*.txt
+!backups/**/*_latest.*
+
+# Sensitive host_vars (optional - uncomment to track)
+# host_vars/
+

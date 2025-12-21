@@ -1,0 +1,14 @@
+# Disconet Global Variables
+---
+# Network settings
+disconet:
+  domain: disconet.local
+  dns_servers:
+    - 172.19.1.1
+    - 4.4.2.2
+  ntp_servers:
+    - time.cloudflare.com
+    - pool.ntp.org
+  syslog_server: syslog.disconet.local
+
+

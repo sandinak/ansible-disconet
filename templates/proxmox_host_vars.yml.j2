@@ -1,0 +1,61 @@
+# {{ inventory_hostname }} - Proxmox Configuration
+# Auto-generated from device on {{ lookup('pipe', 'date') }}
+# DO NOT EDIT MANUALLY - changes will be overwritten on next pull
+---
+# Override to prevent re-pulling
+proxmox_config_source: pulled
+
+# Node Information
+proxmox_node:
+  hostname: "{{ pulled_config.hostname }}"
+  fqdn: "{{ pulled_config.fqdn }}"
+  
+# Network Configuration (from /etc/network/interfaces)
+# Raw config preserved for reference
+proxmox_network_raw: |
+{{ pulled_config.network_interfaces | indent(2, first=True) }}
+
+# Parsed network configuration
+proxmox_network_config:
+  bridges:
+    # vmbr0 is typically the management bridge
+    vmbr0:
+      address: "{{ ansible_default_ipv4.address | default('dhcp') }}"
+      netmask: "{{ ansible_default_ipv4.netmask | default('255.255.255.0') }}"
+      gateway: "{{ ansible_default_ipv4.gateway | default('') }}"
+      bridge_ports: "{{ ansible_default_ipv4.interface | default('eth0') }}"
+      bridge_stp: "off"
+      bridge_fd: 0
+  
+  # VLAN interfaces (if configured)
+  vlans: {}
+
+# Storage Configuration (from /etc/pve/storage.cfg)
+proxmox_storage_raw: |
+{{ pulled_config.storage_config | indent(2, first=True) }}
+
+# Parsed storage configuration
+proxmox_storage_config:
+  # Storage will be parsed from config
+  # Example:
+  # local:
+  #   type: dir
+  #   path: /var/lib/vz
+  #   content: [iso, vztmpl, backup]
+  # local-lvm:
+  #   type: lvmthin
+  #   vgname: pve
+  #   thinpool: data
+  #   content: [rootdir, images]
+  {}
+
+# Current VMs on this node
+proxmox_current_vms: |
+{{ pulled_config.vms | indent(2, first=True) }}
+
+# Current Containers on this node  
+proxmox_current_containers: |
+{{ pulled_config.containers | indent(2, first=True) }}
+
+# Cluster Status
+proxmox_cluster_status: "{{ pulled_config.cluster_status }}"

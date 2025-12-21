@@ -1,0 +1,23 @@
+# Disconet Ansible Collection Requirements
+---
+collections:
+  # Community General - utilities and common modules
+  - name: community.general
+    version: ">=8.0.0"
+
+  # pfSense management
+  - name: pfsensible.core
+    version: ">=0.6.0"
+
+  # Proxmox management
+  - name: community.proxmox
+    version: ">=1.0.0"
+
+  # Network utilities
+  - name: ansible.netcommon
+    version: ">=6.0.0"
+
+  # POSIX utilities
+  - name: ansible.posix
+    version: ">=1.5.0"
+

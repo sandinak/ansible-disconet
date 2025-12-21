@@ -1,0 +1,27 @@
+# Pull Configurations from All Devices
+# This playbook pulls current configs and updates host_vars inventory
+---
+- name: Pull pfSense Configurations
+  ansible.builtin.import_playbook: backup/pull_pfsense.yml
+  tags: [pull, pfsense]
+
+- name: Pull Zyxel Configurations
+  ansible.builtin.import_playbook: backup/pull_zyxel.yml
+  tags: [pull, zyxel]
+
+- name: Pull Proxmox Configurations
+  ansible.builtin.import_playbook: backup/pull_proxmox.yml
+  tags: [pull, proxmox]
+
+- name: Summary
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display pull summary
+      ansible.builtin.debug:
+        msg: |
+          Configuration pull complete!
+          - Raw backups saved to: backups/
+          - Inventory updated in: host_vars/
+          
+          Review changes with: git diff host_vars/

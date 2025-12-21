@@ -1,0 +1,54 @@
+# Zyxel Switch Group Variables
+---
+# Zyxel credentials (use ansible-vault in production)
+zyxel_user: admin
+# zyxel_password: !vault |
+#   $ANSIBLE_VAULT;1.1;AES256
+#   ...
+
+# Default Zyxel configuration
+zyxel_config:
+  # System settings
+  system:
+    hostname: "{{ inventory_hostname_short }}"
+    location: "Disconet Data Center"
+    contact: "admin@disconet.local"
+    timezone: "America/Los_Angeles"
+
+  # Management settings
+  management:
+    ssh:
+      enabled: true
+      port: 22
+    https:
+      enabled: true
+      port: 443
+    telnet:
+      enabled: false
+    snmp:
+      enabled: true
+      community: "{{ zyxel_snmp_community | default('public') }}"
+    syslog:
+      enabled: true
+      server: "{{ disconet.syslog_server }}"
+      facility: local0
+      severity: informational
+    ntp:
+      enabled: true
+      servers: "{{ disconet.ntp_servers }}"
+
+  # Default VLAN configuration
+  vlans: "{{ vlans }}"
+
+  # Spanning tree defaults
+  spanning_tree:
+    enabled: true
+    mode: rstp
+    priority: 32768
+
+  # Port security defaults
+  port_security:
+    enabled: false
+    max_addresses: 5
+    violation_action: restrict
+

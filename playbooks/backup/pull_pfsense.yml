@@ -1,0 +1,90 @@
+# Pull pfSense Configuration
+# Uses PHP shell to extract config data from pfSense
+---
+- name: Pull pfSense Configurations
+  hosts: pfsense
+  gather_facts: false
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups/pfsense"
+    host_vars_dir: "{{ playbook_dir }}/../host_vars"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    - name: Ensure host_vars directory exists
+      ansible.builtin.file:
+        path: "{{ host_vars_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    # Pull system configuration using PHP shell
+    - name: Get system configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $result = array(
+            'system' => array(
+              'hostname' => $config['system']['hostname'],
+              'domain' => $config['system']['domain'],
+              'timezone' => $config['system']['timezone'],
+              'dns_servers' => isset($config['system']['dnsserver']) ? $config['system']['dnsserver'] : array()
+            ),
+            'interfaces' => array(),
+            'aliases' => isset($config['aliases']['alias']) ? $config['aliases']['alias'] : array(),
+            'rules' => isset($config['filter']['rule']) ? $config['filter']['rule'] : array()
+          );
+          foreach ($config['interfaces'] as $name => $iface) {
+            $result['interfaces'][$name] = array(
+              'enable' => isset($iface['enable']),
+              'descr' => isset($iface['descr']) ? $iface['descr'] : $name,
+              'ipaddr' => isset($iface['ipaddr']) ? $iface['ipaddr'] : '',
+              'subnet' => isset($iface['subnet']) ? $iface['subnet'] : '',
+              'if' => isset($iface['if']) ? $iface['if'] : ''
+            );
+          }
+          echo json_encode($result, JSON_PRETTY_PRINT);
+      register: pfsense_php_result
+
+    - name: Parse PHP result
+      ansible.builtin.set_fact:
+        pfsense_config:
+          ansible_facts: "{{ pfsense_php_result.stdout | from_json }}"
+
+    - name: Save raw backup (JSON)
+      ansible.builtin.copy:
+        content: "{{ pfsense_config | to_nice_json }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_{{ timestamp }}.json"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Save latest backup
+      ansible.builtin.copy:
+        content: "{{ pfsense_config | to_nice_json }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_latest.json"
+        mode: '0644'
+      delegate_to: localhost
+
+    # Generate host_vars from pulled config
+    - name: Generate host_vars from config
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/pfsense_host_vars.yml.j2"
+        dest: "{{ host_vars_dir }}/{{ inventory_hostname }}.yml"
+        mode: '0644'
+      delegate_to: localhost
+      vars:
+        pulled_config: "{{ pfsense_config }}"
+
+    - name: Display pulled configuration summary
+      ansible.builtin.debug:
+        msg: |
+          Pulled config from {{ inventory_hostname }}:
+          - Hostname: {{ pfsense_config.ansible_facts.system.hostname | default('unknown') }}
+          - Interfaces: {{ pfsense_config.ansible_facts.interfaces | default({}) | length }}
+          - Rules: {{ pfsense_config.ansible_facts.rules | default([]) | length }}

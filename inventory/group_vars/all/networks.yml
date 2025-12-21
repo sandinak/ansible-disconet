@@ -1,0 +1,66 @@
+# Common VLANs
+vlans:
+  core:
+    id: 1
+    name: management vlan
+    subnet: 172.19.1.0/24
+  internal:
+    id: 102
+    name: Internal
+    subnet: 172.19.2.0/24
+  public:
+    id: 103
+    name: Public Services
+    subnet: 172.19.3.0/24
+  wifiadmin:
+    id: 104 
+    name: Wifi Admin
+    subnet: 172.19.4.0/24
+  admin:
+    id: 106
+    name: Admin
+    subnet: 172.19.5.0/24
+
+# this shouldn't be used 
+  sync:
+    id: 115
+    name: Sync DO NOT USE
+    subnet: 172.19.15.0/24
+
+# CON Networks
+  jtw:
+    id: 116
+    name: Jump the wall
+    subnet: 172.19.16.0/24
+  
+  cfp:
+    id: 117
+    name: Call for Papers
+    subnet: 172.19.17.0/24
+  
+  junk: 
+    id: 118
+    name: Junkuyard
+    subnet: 172.19.18.0/24
+  
+  speaker:
+    id: 119
+    name: Speaker Network
+    subnet: 172.19.19.0/24
+
+  registration:
+    id: 120
+    name: Registration
+    subnet: 172.19.20.0/24
+
+#PUBLIC NETWORKS
+  open:
+    id: 228
+    name: Open Wifi
+    subnet: 172.19.128.0/18
+  
+  wpa:
+    id: 292
+    name: WPA Wifi
+    subnet: 172.19.192.0/18
+

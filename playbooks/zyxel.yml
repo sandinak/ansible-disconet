@@ -1,0 +1,34 @@
+# Zyxel Switch Configuration
+---
+- name: Configure Zyxel Switches
+  hosts: zyxel
+  gather_facts: false
+
+  pre_tasks:
+    - name: Check connectivity to Zyxel switch
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        timeout: 10
+      delegate_to: localhost
+
+  roles:
+    - role: zyxel_base
+      tags: [zyxel, base]
+    - role: zyxel_vlans
+      tags: [zyxel, vlans]
+    - role: zyxel_ports
+      tags: [zyxel, ports]
+    - role: zyxel_security
+      tags: [zyxel, security]
+
+  post_tasks:
+    - name: Save running configuration
+      ansible.builtin.command: write memory
+      changed_when: false
+      tags: [zyxel, save]
+
+    - name: Display Zyxel configuration summary
+      ansible.builtin.debug:
+        msg: "Zyxel {{ inventory_hostname }} configured successfully"
+

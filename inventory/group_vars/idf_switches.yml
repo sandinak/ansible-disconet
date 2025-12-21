@@ -1,0 +1,80 @@
+# Standard IDF Switch Template
+# All IDF switches share this common port layout
+# Only management IP differs per switch
+---
+# Standard IDF Switch Port Layout
+# This is the "golden config" for all IDF switches
+# Pull from one switch, apply to all
+
+idf_switch_template:
+  # Port assignment template
+  ports:
+    # Access ports - client devices
+    access:
+      range: "1-20"
+      vlan: "{{ vlans.clients.id }}"
+      description: "Client Access"
+      stp_edge: true
+      port_security: true
+      
+    # Voice ports (if VoIP deployed)  
+    voice:
+      range: "21-22"
+      vlan: 100  # Voice VLAN
+      description: "VoIP Phones"
+      stp_edge: true
+      qos_priority: 5
+      
+    # IoT/Printer ports
+    iot:
+      range: "23-24"
+      vlan: "{{ vlans.iot.id }}"
+      description: "IoT Devices"
+      stp_edge: true
+      port_security: true
+      max_mac: 3
+      
+    # Uplink ports (to distribution/core)
+    uplink:
+      range: "25-26"
+      mode: trunk
+      native_vlan: 1
+      allowed_vlans: all
+      description: "Uplink"
+      stp_edge: false
+      root_guard: true
+
+  # LAG configuration for uplinks
+  uplink_lag:
+    enabled: true
+    name: "uplink"
+    members: [25, 26]
+    mode: lacp
+    lacp_mode: active
+    
+  # Spanning Tree
+  spanning_tree:
+    mode: rstp
+    priority: 49152  # Higher than core/distribution
+    edge_ports: "1-24"
+    root_guard_ports: "25-26"
+    bpdu_guard_ports: "1-24"
+    
+  # Standard VLANs (all IDF switches need these)
+  required_vlans:
+    - id: "{{ vlans.management.id }}"
+      name: "{{ vlans.management.name }}"
+    - id: "{{ vlans.clients.id }}"
+      name: "{{ vlans.clients.name }}"
+    - id: "{{ vlans.iot.id }}"
+      name: "{{ vlans.iot.name }}"
+    - id: 100
+      name: "Voice"
+      
+  # Management settings
+  management:
+    vlan: "{{ vlans.management.id }}"
+    ssh: true
+    https: true
+    snmp: true
+    syslog: true

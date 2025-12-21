@@ -1,0 +1,44 @@
+# pfSense Group Variables
+---
+# pfSense API credentials (use ansible-vault in production)
+pfsense_user: admin
+# pfsense_password: !vault |
+#   $ANSIBLE_VAULT;1.1;AES256
+#   ...
+
+# Default pfSense configuration
+pfsense_config:
+  # System settings
+  system:
+    hostname: "{{ inventory_hostname_short }}"
+    domain: "{{ disconet.domain }}"
+    dns_servers: "{{ disconet.dns_servers }}"
+    timezone: America/Los_Angeles
+
+  # Interface defaults
+  interfaces:
+    wan:
+      enable: true
+      type: dhcp
+    lan:
+      enable: true
+      ipaddr: 192.168.1.1
+      subnet: 24
+
+  # Firewall defaults
+  firewall:
+    log_default_block: true
+    optimization: normal
+
+  # Services
+  services:
+    ssh:
+      enable: true
+      port: 22
+    webgui:
+      protocol: https
+      port: 443
+    dns_resolver:
+      enable: true
+      forwarding: true
+

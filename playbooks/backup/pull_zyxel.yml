@@ -1,0 +1,109 @@
+# Pull Zyxel Switch Configuration
+---
+- name: Pull Zyxel Switch Configurations
+  hosts: zyxel
+  gather_facts: false
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups/zyxel"
+    host_vars_dir: "{{ playbook_dir }}/../host_vars"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    - name: Ensure host_vars directory exists  
+      ansible.builtin.file:
+        path: "{{ host_vars_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    # Pull running configuration
+    - name: Get running configuration
+      ansible.netcommon.cli_command:
+        command: show running-config
+      register: running_config
+
+    - name: Save raw running config backup
+      ansible.builtin.copy:
+        content: "{{ running_config.stdout }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_running_{{ timestamp }}.txt"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Save latest running config
+      ansible.builtin.copy:
+        content: "{{ running_config.stdout }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_running_latest.txt"
+        mode: '0644'
+      delegate_to: localhost
+
+    # Pull VLAN configuration
+    - name: Get VLAN configuration
+      ansible.netcommon.cli_command:
+        command: show vlan
+      register: vlan_config
+
+    # Pull interface status
+    - name: Get interface status
+      ansible.netcommon.cli_command:
+        command: show interface status
+      register: interface_status
+
+    # Pull spanning tree
+    - name: Get spanning tree configuration
+      ansible.netcommon.cli_command:
+        command: show spanning-tree
+      register: stp_config
+
+    # Pull system info
+    - name: Get system information
+      ansible.netcommon.cli_command:
+        command: show system-information
+      register: system_info
+
+    # Pull trunk/LAG info
+    - name: Get trunk configuration
+      ansible.netcommon.cli_command:
+        command: show trunk
+      register: trunk_config
+      ignore_errors: true
+
+    # Parse and generate host_vars
+    - name: Set parsed facts
+      ansible.builtin.set_fact:
+        zyxel_pulled_config:
+          running_config: "{{ running_config.stdout }}"
+          vlans: "{{ vlan_config.stdout }}"
+          interfaces: "{{ interface_status.stdout }}"
+          spanning_tree: "{{ stp_config.stdout }}"
+          system_info: "{{ system_info.stdout }}"
+          trunks: "{{ trunk_config.stdout | default('') }}"
+
+    - name: Save parsed config as JSON
+      ansible.builtin.copy:
+        content: "{{ zyxel_pulled_config | to_nice_json }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_parsed_{{ timestamp }}.json"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Generate host_vars from config
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/zyxel_host_vars.yml.j2"
+        dest: "{{ host_vars_dir }}/{{ inventory_hostname }}.yml"
+        mode: '0644'
+      delegate_to: localhost
+      vars:
+        pulled_config: "{{ zyxel_pulled_config }}"
+
+    - name: Display pulled configuration summary
+      ansible.builtin.debug:
+        msg: |
+          Pulled config from {{ inventory_hostname }}
+          - Running config: {{ running_config.stdout | length }} bytes
+          - VLANs configured: {{ vlan_config.stdout_lines | default([]) | length }} lines

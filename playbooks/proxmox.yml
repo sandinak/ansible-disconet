@@ -1,0 +1,36 @@
+# Proxmox Infrastructure Configuration
+---
+- name: Configure Proxmox Hypervisors
+  hosts: proxmox
+  gather_facts: true
+
+  pre_tasks:
+    - name: Check connectivity to Proxmox
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 8006
+        timeout: 10
+      delegate_to: localhost
+
+  roles:
+    - role: proxmox_base
+      tags: [proxmox, base]
+    - role: proxmox_network
+      tags: [proxmox, network]
+    - role: proxmox_storage
+      tags: [proxmox, storage]
+
+  post_tasks:
+    - name: Display Proxmox configuration summary
+      ansible.builtin.debug:
+        msg: "Proxmox {{ inventory_hostname }} configured successfully"
+
+- name: Manage Proxmox VMs
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - role: proxmox_vms
+      tags: [proxmox, vms]
+      when: proxmox_vms_config is defined
+

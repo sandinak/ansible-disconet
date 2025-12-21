@@ -1,0 +1,90 @@
+# {{ inventory_hostname }} - Zyxel Switch Configuration
+# Auto-generated from device on {{ lookup('pipe', 'date') }}
+# DO NOT EDIT MANUALLY - changes will be overwritten on next pull
+---
+# Override to prevent re-pulling
+zyxel_config_source: pulled
+
+# Raw configuration backup reference
+zyxel_backup_file: "backups/zyxel/{{ inventory_hostname }}_running_latest.txt"
+
+# System Information (parsed from show system-information)
+zyxel_system:
+  hostname: "{{ inventory_hostname_short }}"
+  # Parsed from pulled config - customize as needed
+  location: "{{ zyxel_config.system.location | default('Unknown') }}"
+  contact: "{{ zyxel_config.system.contact | default('admin@disconet.local') }}"
+
+# VLAN Configuration (parsed from show vlan)
+# Format: Parse the VLAN table output into structured data
+zyxel_vlans_config:
+  # VLANs will be parsed from running config
+  # Example format after parsing:
+  # 10:
+  #   name: Management
+  #   tagged_ports: [25, 26]
+  #   untagged_ports: [1, 2, 3]
+  {}
+
+# Port Configuration (parsed from show interface status)
+# This is your standard IDF port layout - customize once, apply to all
+zyxel_ports_config:
+  # Standard IDF port layout template
+  # Ports 1-24: Access ports
+  # Ports 25-26: Uplinks (tagged all VLANs)
+  defaults:
+    speed: auto
+    enabled: true
+    
+  # Access port ranges by VLAN
+  access_ports:
+    # Ports 1-20: Data VLAN (client devices)
+    data:
+      ports: "1-20"
+      vlan: "{{ vlans.clients.id }}"
+    # Ports 21-22: Voice VLAN  
+    voice:
+      ports: "21-22"
+      vlan: 100
+    # Ports 23-24: Printer/IoT
+    iot:
+      ports: "23-24"
+      vlan: "{{ vlans.iot.id }}"
+
+  # Uplink ports (trunks)
+  uplinks:
+    ports: "25-26"
+    native_vlan: 1
+    tagged_vlans: all
+
+# Trunk/LAG Configuration
+zyxel_trunks_config:
+  # Example: Uplink LAG
+  # uplink_lag:
+  #   members: [25, 26]
+  #   mode: lacp
+  #   lacp_mode: active
+  {}
+
+# Spanning Tree Configuration
+zyxel_stp_config:
+  enabled: true
+  mode: rstp
+  priority: 32768
+  # Edge ports (access ports)
+  edge_ports: "1-24"
+  # Root guard on uplinks
+  root_guard_ports: "25-26"
+
+# Port Security (optional)
+zyxel_port_security:
+  enabled: false
+  max_mac_per_port: 5
+  violation_action: restrict
+
+# Management access
+zyxel_management:
+  ssh_enabled: true
+  https_enabled: true
+  telnet_enabled: false
+  snmp_enabled: true

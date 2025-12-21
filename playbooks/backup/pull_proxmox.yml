@@ -1,0 +1,117 @@
+# Pull Proxmox Configuration
+---
+- name: Pull Proxmox Hypervisor Configurations
+  hosts: proxmox
+  gather_facts: true
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups/proxmox"
+    host_vars_dir: "{{ playbook_dir }}/../host_vars"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    - name: Ensure host_vars directory exists
+      ansible.builtin.file:
+        path: "{{ host_vars_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    # Pull network configuration
+    - name: Get network interfaces config
+      ansible.builtin.slurp:
+        src: /etc/network/interfaces
+      register: network_config
+
+    # Pull storage configuration
+    - name: Get storage configuration
+      ansible.builtin.command: pvesm status -content images
+      register: storage_status
+      changed_when: false
+
+    - name: Get storage config file
+      ansible.builtin.slurp:
+        src: /etc/pve/storage.cfg
+      register: storage_config
+
+    # Pull VM list
+    - name: Get VM list
+      ansible.builtin.command: qm list
+      register: vm_list
+      changed_when: false
+
+    # Pull container list
+    - name: Get container list
+      ansible.builtin.command: pct list
+      register: container_list
+      changed_when: false
+
+    # Pull cluster status if clustered
+    - name: Check if clustered
+      ansible.builtin.stat:
+        path: /etc/pve/corosync.conf
+      register: cluster_config_file
+
+    - name: Get cluster status
+      ansible.builtin.command: pvecm status
+      register: cluster_status
+      changed_when: false
+      when: cluster_config_file.stat.exists
+      ignore_errors: true
+
+    # Pull node resources
+    - name: Get node resources
+      ansible.builtin.command: pvesh get /nodes/{{ ansible_hostname }}/status
+      register: node_status
+      changed_when: false
+
+    # Compile pulled configuration
+    - name: Set pulled config facts
+      ansible.builtin.set_fact:
+        proxmox_pulled_config:
+          hostname: "{{ ansible_hostname }}"
+          fqdn: "{{ ansible_fqdn }}"
+          network_interfaces: "{{ network_config.content | b64decode }}"
+          storage_config: "{{ storage_config.content | b64decode }}"
+          storage_status: "{{ storage_status.stdout }}"
+          vms: "{{ vm_list.stdout }}"
+          containers: "{{ container_list.stdout }}"
+          cluster_status: "{{ cluster_status.stdout | default('not clustered') }}"
+          node_status: "{{ node_status.stdout }}"
+
+    - name: Save raw backup
+      ansible.builtin.copy:
+        content: "{{ proxmox_pulled_config | to_nice_json }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_{{ timestamp }}.json"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Save latest backup
+      ansible.builtin.copy:
+        content: "{{ proxmox_pulled_config | to_nice_json }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_latest.json"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Generate host_vars from config
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/proxmox_host_vars.yml.j2"
+        dest: "{{ host_vars_dir }}/{{ inventory_hostname }}.yml"
+        mode: '0644'
+      delegate_to: localhost
+      vars:
+        pulled_config: "{{ proxmox_pulled_config }}"
+
+    - name: Display pulled configuration summary
+      ansible.builtin.debug:
+        msg: |
+          Pulled config from {{ inventory_hostname }}:
+          - Hostname: {{ ansible_hostname }}
+          - VMs: {{ vm_list.stdout_lines | length - 1 }} running
+          - Containers: {{ container_list.stdout_lines | length - 1 }} configured

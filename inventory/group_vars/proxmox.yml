@@ -1,0 +1,47 @@
+# Proxmox Group Variables
+---
+# Proxmox API credentials (use ansible-vault in production)
+proxmox_api_user: root@pam
+# proxmox_api_password: !vault |
+#   $ANSIBLE_VAULT;1.1;AES256
+#   ...
+# Or use API token:
+# proxmox_api_token_id: ansible@pam!automation
+# proxmox_api_token_secret: !vault |
+#   $ANSIBLE_VAULT;1.1;AES256
+#   ...
+
+# Proxmox API settings
+proxmox_api:
+  host: "{{ ansible_host }}"
+  port: 8006
+  validate_certs: false
+
+# Default VM settings
+proxmox_vm_defaults:
+  cores: 2
+  memory: 2048
+  balloon: 1024
+  scsihw: virtio-scsi-pci
+  boot: order=scsi0
+  agent: 1
+  onboot: true
+
+# Default storage
+proxmox_storage:
+  vm_storage: local-lvm
+  iso_storage: local
+  template_storage: local
+
+# Network defaults
+proxmox_network:
+  bridge: vmbr0
+  model: virtio
+  firewall: true
+
+# Template mappings
+proxmox_templates:
+  ubuntu22: local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst
+  debian12: local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst
+  rocky9: local:vztmpl/rockylinux-9-default_20230629_amd64.tar.xz
+

@@ -1,0 +1,15 @@
+# IDF Switch Example - sw-idf01
+# Only need to specify unique values - everything else comes from group template
+---
+# Unique per-switch settings
+switch_management_ip: 192.168.10.11
+switch_hostname: sw-idf01
+switch_location: "Building A, Floor 1, IDF Closet"
+
+# Optional: Override specific ports if this IDF is different
+# port_overrides:
+#   5:
+#     description: "Conference Room A"
+#     vlan: 50  # Different VLAN for this port
+#   6:
+#     shutdown: true  # Disabled port
