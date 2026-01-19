@@ -2,13 +2,15 @@
 ---
 # Network settings
 disconet:
-  domain: disconet.local
+  domain: disconet.work
+  routed_network: 172.19.0.0/16
   dns_servers:
-    - 172.19.1.1
-    - 4.4.2.2
+    - 172.19.3.1  # Public services VLAN
+    - 1.1.1.1
   ntp_servers:
+    - 172.19.3.1  # Public services VLAN
     - time.cloudflare.com
     - pool.ntp.org
-  syslog_server: syslog.disconet.local
+  syslog_server: syslog.disconet.work
 
 

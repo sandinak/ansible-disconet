@@ -1,0 +1,46 @@
+---
+# One-time fix playbook to disable SNMP on sw-core2 and Nebula on sw-idf3
+# Usage: ansible-playbook playbooks/fix_management.yml
+
+- name: Disable SNMP on sw-core2
+  hosts: sw-core2.disconet.work
+  gather_facts: false
+  vars:
+    # Override inventory connection settings
+    ansible_connection: httpapi
+    ansible_network_os: network.zyxel.zyxel
+    ansible_httpapi_use_ssl: true
+    ansible_httpapi_validate_certs: false
+
+  tasks:
+    - name: Disable SNMP service
+      network.zyxel.zyxel_management:
+        service_control:
+          snmp: false
+      register: snmp_result
+
+    - name: Show result
+      ansible.builtin.debug:
+        var: snmp_result
+
+- name: Disable Nebula on sw-idf3
+  hosts: sw-idf3.disconet.work
+  gather_facts: false
+  vars:
+    # Override inventory connection settings
+    ansible_connection: httpapi
+    ansible_network_os: network.zyxel.zyxel
+    ansible_httpapi_use_ssl: true
+    ansible_httpapi_validate_certs: false
+
+  tasks:
+    - name: Disable Nebula discovery
+      network.zyxel.zyxel_management:
+        cloud:
+          discovery_enabled: false
+      register: cloud_result
+
+    - name: Show result
+      ansible.builtin.debug:
+        var: cloud_result
+

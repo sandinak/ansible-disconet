@@ -1,0 +1,19 @@
+---
+ansible_host: 172.19.1.22
+# Podium Switch 3
+# IP: 172.19.1.22
+# Owner: DNET Team
+# Use-case: Podium Switch (backup)
+
+switch_hostname: sw-pod3
+switch_management_ip: 172.19.1.22
+switch_location: "Podium 3"
+switch_role: podium_backup
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Switch specific notes
+notes: "Podium Switch (backup)"
+

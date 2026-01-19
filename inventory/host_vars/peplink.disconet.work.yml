@@ -1,0 +1,18 @@
+---
+# Peplink Router
+# IP: 172.19.0.1
+# Owner: DNet Team
+# Use-case: Default Route
+
+hostname: peplink
+management_ip: 172.19.0.1
+location: "Core Network"
+role: router
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Notes
+notes: "Metered 10G 5G connection - Default last octets - admin / REDACTED"
+

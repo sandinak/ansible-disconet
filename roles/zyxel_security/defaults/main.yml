@@ -1,0 +1,16 @@
+# zyxel_security role defaults
+---
+# Security settings for Zyxel switches
+
+# Enable BPDU guard on access ports
+zyxel_security_bpdu_guard: true
+
+# Disable root guard by default (can cause issues if misconfigured)
+zyxel_security_root_guard: false
+
+# Default STP settings
+zyxel_security_stp:
+  enabled: true
+  mode: rstp
+  priority: 32768
+

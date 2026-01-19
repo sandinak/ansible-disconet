@@ -17,6 +17,15 @@ collections:
   - name: ansible.netcommon
     version: ">=6.0.0"
 
+  # Network device modules
+  - name: community.network
+    version: ">=5.0.0"
+
+  # Zyxel switch management (custom collection)
+  # Install from local ansible-zyxel repository using: make install-zyxel-collection
+  # This requires the ansible-zyxel repo to be cloned at ../ansible-zyxel
+  # Clone with: git clone git@github.com:sandinak/ansible-zyxel.git ../ansible-zyxel
+
   # POSIX utilities
   - name: ansible.posix
     version: ">=1.5.0"

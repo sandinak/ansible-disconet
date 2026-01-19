@@ -1,0 +1,197 @@
+---
+# Sync IDF Switch Configuration
+# Pull config from sw-idf1 (reference) and apply to other IDF switches
+# This ensures all IDF switches have identical port/VLAN configuration
+#
+# This playbook uses the golden config pattern:
+#   1. Backup reference switch config (CLI via network_cli)
+#   2. Backup target switches before changes (CLI via network_cli)
+#   3. Apply configuration using HTTP API modules (httpapi)
+#   4. Save and verify changes (CLI via network_cli)
+#
+# The actual config template is in group_vars/idf_switches.yml
+# To update the golden config from idf1, run:
+#   ansible-playbook playbooks/pull_golden_config.yml --limit sw-idf1.disconet.work
+
+# ============================================================
+# PLAY 1: Backup Reference Switch (network_cli)
+# ============================================================
+- name: Backup Reference Configuration from IDF1
+  hosts: sw-idf1.disconet.work
+  gather_facts: false
+  connection: network_cli
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups/zyxel"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    - name: Get running configuration from IDF1
+      ansible.netcommon.cli_command:
+        command: show running-config
+      register: idf1_running_config
+
+    - name: Save IDF1 reference config
+      ansible.builtin.copy:
+        content: "{{ idf1_running_config.stdout }}"
+        dest: "{{ backup_dir }}/idf1_reference_{{ timestamp }}.txt"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Display IDF1 backup summary
+      ansible.builtin.debug:
+        msg: |
+          ✓ Backed up reference configuration from sw-idf1
+          - Config saved to: {{ backup_dir }}/idf1_reference_{{ timestamp }}.txt
+          - Template in use: group_vars/idf_switches.yml
+
+# ============================================================
+# PLAY 2: Backup Target Switches Before Changes (network_cli)
+# ============================================================
+- name: Backup Target IDF Switches Before Sync
+  hosts: idf_switches:!sw-idf1.disconet.work
+  gather_facts: false
+  connection: network_cli
+  serial: 1
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups/zyxel"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Backup current configuration before changes
+      ansible.netcommon.cli_command:
+        command: show running-config
+      register: current_config
+
+    - name: Save pre-change backup
+      ansible.builtin.copy:
+        content: "{{ current_config.stdout }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_pre_sync_{{ timestamp }}.txt"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Confirm sync operation
+      ansible.builtin.pause:
+        prompt: |
+
+          ⚠️  About to sync configuration to {{ inventory_hostname }}
+          This will apply the IDF template config (VLANs and port settings)
+          Using group_vars/idf_switches.yml template
+
+          Press ENTER to continue, or Ctrl+C then 'A' to abort
+      when:
+        - ansible_check_mode is not defined or not ansible_check_mode
+        - not (auto_approve | default(false))
+
+# ============================================================
+# PLAY 3: Apply Configuration via HTTP API (httpapi)
+# ============================================================
+- name: Apply Reference Configuration to Other IDF Switches
+  hosts: idf_switches:!sw-idf1.disconet.work
+  gather_facts: false
+  serial: 1  # Apply one at a time for safety
+  vars:
+    # Override connection to httpapi for HTTP API modules
+    ansible_connection: httpapi
+    ansible_httpapi_use_ssl: true
+    ansible_httpapi_validate_certs: false
+
+  pre_tasks:
+    - name: Display sync message
+      ansible.builtin.debug:
+        msg: |
+          Syncing {{ inventory_hostname }} with IDF switch template
+          Template source: group_vars/idf_switches.yml
+          Management IP: {{ switch_management_ip | default(ansible_host) }}
+          Connection: HTTP API (httpapi)
+
+  roles:
+    - role: zyxel_base
+      tags: [base, system]
+    - role: zyxel_vlans
+      tags: [vlans]
+    - role: zyxel_ports
+      tags: [ports]
+    - role: zyxel_security
+      tags: [security]
+
+# ============================================================
+# PLAY 4: Save and Backup After Changes (network_cli)
+# ============================================================
+- name: Save and Backup IDF Switches After Sync
+  hosts: idf_switches:!sw-idf1.disconet.work
+  gather_facts: false
+  connection: network_cli
+  serial: 1
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups/zyxel"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Save running configuration
+      ansible.netcommon.cli_command:
+        command: write memory
+      register: save_result
+      changed_when: true
+
+    - name: Backup post-change configuration
+      ansible.netcommon.cli_command:
+        command: show running-config
+      register: post_config
+
+    - name: Save post-change backup
+      ansible.builtin.copy:
+        content: "{{ post_config.stdout }}"
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}_post_sync_{{ timestamp }}.txt"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: |
+          ✓ {{ inventory_hostname }} synchronized successfully
+          - Pre-sync backup: {{ inventory_hostname }}_pre_sync_{{ timestamp }}.txt
+          - Post-sync backup: {{ inventory_hostname }}_post_sync_{{ timestamp }}.txt
+
+# ============================================================
+# PLAY 5: Summary
+# ============================================================
+- name: Summary
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display sync summary
+      ansible.builtin.debug:
+        msg: |
+
+          ═══════════════════════════════════════════════════════════
+          IDF Switch Configuration Sync Complete
+          ═══════════════════════════════════════════════════════════
+
+          Template Source: group_vars/idf_switches.yml
+          Reference Backup: sw-idf1.disconet.work
+          Target switches: sw-idf2, sw-idf3
+
+          ✓ Reference config backed up from IDF1
+          ✓ Pre-sync backups created for target switches
+          ✓ Configuration applied via HTTP API modules:
+            - zyxel_base: System settings (hostname, management)
+            - zyxel_vlans: VLAN configuration
+            - zyxel_ports: Port PVID and VLAN membership
+            - zyxel_security: STP and security settings
+          ✓ Configuration saved (write memory)
+          ✓ Post-sync backups saved
+
+          Backups location: backups/zyxel/
+
+          To update golden config from reference switch:
+            ansible-playbook playbooks/pull_golden_config.yml --limit sw-idf1.disconet.work
+
+          To apply to a single switch:
+            ansible-playbook playbooks/sync_idf_switches.yml --limit sw-idf2.disconet.work

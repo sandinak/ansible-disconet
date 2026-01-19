@@ -1,0 +1,19 @@
+---
+ansible_host: 172.19.1.23
+# Junkyard Switch
+# IP: 172.19.1.23
+# Owner: DNET Team
+# Use-case: Junkyard
+
+switch_hostname: sw-junk
+switch_management_ip: 172.19.1.23
+switch_location: "Junkyard"
+switch_role: special_junkyard
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Switch specific notes
+notes: "Junkyard switch for testing/temporary connections"
+

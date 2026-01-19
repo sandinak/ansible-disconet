@@ -1,0 +1,18 @@
+# Golden Config Group Variables
+# Switches in this group are the authoritative sources for their switch type.
+#
+# Usage:
+#   Pull config from all golden switches:
+#     ansible-playbook playbooks/pull_golden_config.yml -l golden_config
+#
+#   Pull config from a specific golden switch:
+#     ansible-playbook playbooks/pull_golden_config.yml -l sw-idf1.disconet.work
+#
+# Golden config mappings:
+#   sw-idf1  (GS1920-24HP)  -> idf_switches template
+#   sw-pod1  (GS1900-8HP)   -> podium_switches template
+#   sw-core1 (GS1915-24EP)  -> core_switches template
+#   sw-junk  (GS1915-24)    -> special_switches template
+---
+is_golden_config: true
+

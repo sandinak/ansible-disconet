@@ -1,0 +1,19 @@
+---
+# Core Switch 1
+# IP: 172.19.1.15
+# Owner: DNet Team
+# Use-case: Core switch
+
+ansible_host: 172.19.1.15
+switch_hostname: sw-core1
+switch_management_ip: 172.19.1.15
+switch_location: "Core Network - Primary"
+switch_role: core_primary
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Switch specific notes
+notes: "Primary core switch"
+

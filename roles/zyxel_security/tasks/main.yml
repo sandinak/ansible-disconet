@@ -1,0 +1,71 @@
+# zyxel_security role - Security settings for Zyxel switches
+# Uses HTTP API modules for configuration on GS1900/GS1915/GS1920
+#
+# NOTE: Spanning Tree configuration via HTTP API is not fully implemented
+# in the network.zyxel collection. STP settings should be configured
+# via the web interface or will use the reference switch's existing settings.
+#
+# This role currently:
+#   - Logs the security configuration intent
+#   - Can be extended when HTTP API spanning tree support is added
+#
+# Connection: Requires 'httpapi' connection (set in playbook or group_vars)
+---
+
+# ============================================================
+# Load switch template based on group membership
+# ============================================================
+- name: Set switch template (IDF switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ idf_switch_template | default({}) }}"
+  when:
+    - "'idf_switches' in group_names"
+    - idf_switch_template is defined
+
+- name: Set switch template (Core switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ core_switch_template | default({}) }}"
+  when:
+    - "'core_switches' in group_names"
+    - core_switch_template is defined
+
+- name: Set switch template (Podium switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ podium_switch_template | default({}) }}"
+  when:
+    - "'podium_switches' in group_names"
+    - podium_switch_template is defined
+
+# ============================================================
+# Security Module Configuration (when available)
+# ============================================================
+# The zyxel_security module can configure various security features
+- name: Configure security settings via HTTP API
+  network.zyxel.zyxel_security:
+    state: present
+  when: false  # Disabled until module is fully implemented
+  tags: [zyxel, security]
+
+# ============================================================
+# Display Summary
+# ============================================================
+- name: Display security configuration summary
+  ansible.builtin.debug:
+    msg: |
+      ═══════════════════════════════════════════════════════════
+      Security configuration for {{ inventory_hostname }}
+      ═══════════════════════════════════════════════════════════
+      Switch Type: {{ 'IDF' if 'idf_switches' in group_names else 'Core' if 'core_switches' in group_names else 'Podium' if 'podium_switches' in group_names else 'Unknown' }}
+
+      NOTE: Spanning Tree HTTP API configuration is not yet implemented
+      in the network.zyxel collection.
+
+      Current STP settings on the switch are preserved.
+      To modify STP settings, use the switch web interface:
+        https://{{ ansible_host }}/
+
+      Expected STP settings from template:
+      - Mode: {{ switch_template.spanning_tree.mode | default('rstp') }}
+      - Priority: {{ switch_template.spanning_tree.priority | default('default') }}
+  tags: [zyxel, security, summary]
+

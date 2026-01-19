@@ -1,0 +1,208 @@
+7777777777777777777  Building configuration...
+
+  Current configuration: 
+
+; Product Name = GS1915-24EP
+
+; Firmware Version = V4.70(ACDS.2) | 06/09/2022
+
+no service-control telnet 
+no service-control ftp 
+no service-control snmp 
+no cloud center discovery 
+vlan 1 
+  normal "" 
+  fixed 1-24 
+  forbidden "" 
+  untagged 1-24 
+  ip address default-management 172.19.1.15 255.255.255.0 
+  ip address default-gateway 172.19.1.1 
+exit 
+vlan 102 
+  name INT 
+  normal 1-2,21-24 
+  fixed 3-8 
+  forbidden 9-20 
+  untagged 9-20 
+  inactive 
+exit 
+vlan 103 
+  name PUB 
+  normal "" 
+  fixed 1-8,21-24 
+  forbidden 9-20 
+  untagged 9-20 
+exit 
+vlan 104 
+  name WIFIADMIN 
+  normal 9-12 
+  fixed 1-2,21-24 
+  forbidden 3-8,13-20 
+  untagged 3-24 
+exit 
+vlan 105 
+  name ADMIN 
+  normal 13-18 
+  fixed 1-8 
+  forbidden 9-12,19-24 
+  untagged 3-24 
+exit 
+vlan 116 
+  name JTW 
+  normal 1-2,21-24 
+  fixed "" 
+  forbidden 3-20 
+  untagged 3-20 
+  inactive 
+exit 
+vlan 117 
+  name CFP 
+  normal "" 
+  fixed 1-2,21-24 
+  forbidden 3-20 
+  untagged 3-20 
+exit 
+vlan 119 
+  name SPEAKER 
+  normal "" 
+  fixed 1-2,21-24 
+  forbidden 3-20 
+  untagged 3-20 
+exit 
+vlan 120 
+  name REG 
+  normal "" 
+  fixed 1-2,21-24 
+  forbidden 3-20 
+  untagged 3-20 
+exit 
+vlan 121 
+  name VOV 
+  normal "" 
+  fixed 1-2,21-24 
+  forbidden 3-20 
+  untagged 3-20 
+exit 
+vlan 228 
+  name OPEN 
+  normal "" 
+  fixed 1-4,9-12,21-24 
+  forbidden 5-8,13-20 
+  untagged 5-8,13-20 
+exit 
+vlan 292 
+  name WPA 
+  normal "" 
+  fixed 1-2,9-12,21-24 
+  forbidden 3-8,13-20 
+  untagged 3-8,13-20 
+exit 
+interface port-channel 1  
+  name FW1 
+  vlan-trunking 
+exit 
+interface port-channel 2  
+  name FW2 
+  vlan-trunking 
+exit 
+interface port-channel 3  
+  vlan-trunking 
+exit 
+interface port-channel 4  
+  vlan-trunking 
+exit 
+interface port-channel 5  
+  vlan-trunking 
+exit 
+interface port-channel 6  
+  name PVE 
+  vlan-trunking 
+exit 
+interface port-channel 7  
+  vlan-trunking 
+exit 
+interface port-channel 8  
+  vlan-trunking 
+exit 
+interface port-channel 9  
+  pvid 104 
+  vlan-trunking 
+exit 
+interface port-channel 10  
+  pvid 104 
+  vlan-trunking 
+exit 
+interface port-channel 11  
+  pvid 104 
+  vlan-trunking 
+exit 
+interface port-channel 12  
+  pvid 104 
+  vlan-trunking 
+exit 
+interface port-channel 13  
+  pvid 105 
+exit 
+interface port-channel 14  
+  pvid 105 
+exit 
+interface port-channel 15  
+  pvid 105 
+exit 
+interface port-channel 16  
+  pvid 105 
+exit 
+interface port-channel 17  
+  pvid 105 
+exit 
+interface port-channel 18  
+  pvid 105 
+exit 
+interface port-channel 19  
+  pvid 105 
+exit 
+interface port-channel 20  
+  vlan-trunking 
+exit 
+interface port-channel 21  
+  vlan-trunking 
+exit 
+interface port-channel 22  
+  vlan-trunking 
+exit 
+interface port-channel 23  
+  vlan-trunking 
+exit 
+interface port-channel 24  
+  vlan-trunking 
+exit 
+ip name-server 172.19.1.1 
+hostname sw-core1 
+timesync server 1.pool.ntp.org 
+timesync ntp 
+rmon statistics etherstats 1 port-channel 1   
+rmon statistics etherstats 2 port-channel 2   
+rmon statistics etherstats 3 port-channel 3   
+rmon statistics etherstats 4 port-channel 4   
+rmon statistics etherstats 5 port-channel 5   
+rmon statistics etherstats 6 port-channel 6   
+rmon statistics etherstats 7 port-channel 7   
+rmon statistics etherstats 8 port-channel 8   
+rmon statistics etherstats 9 port-channel 9   
+rmon statistics etherstats 10 port-channel 10   
+rmon statistics etherstats 11 port-channel 11   
+rmon statistics etherstats 12 port-channel 12   
+rmon statistics etherstats 13 port-channel 13   
+rmon statistics etherstats 14 port-channel 14   
+rmon statistics etherstats 15 port-channel 15   
+rmon statistics etherstats 16 port-channel 16   
+rmon statistics etherstats 17 port-channel 17   
+rmon statistics etherstats 18 port-channel 18   
+rmon statistics etherstats 19 port-channel 19   
+rmon statistics etherstats 20 port-channel 20   
+rmon statistics etherstats 21 port-channel 21   
+rmon statistics etherstats 22 port-channel 22   
+rmon statistics etherstats 23 port-channel 23   
+rmon statistics etherstats 24 port-channel 24   
+pwr mode consumption 
+wizard ignore

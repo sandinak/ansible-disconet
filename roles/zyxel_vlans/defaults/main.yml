@@ -1,0 +1,12 @@
+# zyxel_vlans role defaults
+---
+# Default VLAN configuration
+# These are typically overridden by group_vars/all/networks.yml and 
+# group_vars/idf_switches.yml or group_vars/core_switches.yml
+
+zyxel_vlans_defaults:
+  # Default VLAN 1 always exists
+  default_vlan:
+    id: 1
+    name: default
+

@@ -1,0 +1,57 @@
+---
+# Sync Switch Configurations
+# Pull configs from reference switches and prepare for deployment to others
+# - IDF switches: sw-idf1 is the reference
+# - Core switches: sw-core1 is the reference
+
+- name: Sync IDF Switches
+  ansible.builtin.import_playbook: sync_idf_switches.yml
+  tags: [sync, idf]
+
+- name: Sync Core Switches
+  ansible.builtin.import_playbook: sync_core_switches.yml
+  tags: [sync, core]
+
+- name: Final Summary
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display overall summary
+      ansible.builtin.debug:
+        msg: |
+          
+          ╔═══════════════════════════════════════════════════════════╗
+          ║     Switch Configuration Sync - Complete                  ║
+          ╚═══════════════════════════════════════════════════════════╝
+          
+          Reference Configurations Pulled:
+          ✓ IDF switches: sw-idf1.disconet.work
+          ✓ Core switches: sw-core1.disconet.work
+          
+          Backups saved to: backups/zyxel/
+          - idf1_reference_latest.txt
+          - core1_reference_latest.txt
+          
+          Templates saved to: templates/
+          - idf_reference_config.txt
+          - core_reference_config.txt
+          
+          Pre-sync backups created for target switches
+          
+          ═══════════════════════════════════════════════════════════
+          Next Steps:
+          ═══════════════════════════════════════════════════════════
+          
+          1. Review reference configs in backups/zyxel/
+          
+          2. To apply IDF config to other switches:
+             ansible-playbook playbooks/deploy_idf_config.yml
+          
+          3. To apply Core config to other switches:
+             ansible-playbook playbooks/deploy_core_config.yml
+          
+          4. Or use the Makefile:
+             make sync-idf    # Pull IDF1 config
+             make sync-core   # Pull Core1 config
+             make sync-all    # Pull both
+

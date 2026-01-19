@@ -1,0 +1,75 @@
+# zyxel_base role - Basic system configuration
+# Uses HTTP API modules for reliable configuration on GS1900/GS1915/GS1920
+#
+# This role configures:
+#   - Hostname (from host_vars: switch_hostname)
+#   - Location (from host_vars: switch_location)
+#   - Contact (from zyxel_config or template)
+#   - NTP servers (from zyxel_config or template)
+#
+# Connection: Requires 'httpapi' connection (set in playbook or group_vars)
+---
+
+# ============================================================
+# Load switch template based on group membership
+# ============================================================
+- name: Set switch template (IDF switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ idf_switch_template | default({}) }}"
+  when:
+    - "'idf_switches' in group_names"
+    - idf_switch_template is defined
+
+- name: Set switch template (Core switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ core_switch_template | default({}) }}"
+  when:
+    - "'core_switches' in group_names"
+    - core_switch_template is defined
+
+- name: Set switch template (Podium switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ podium_switch_template | default({}) }}"
+  when:
+    - "'podium_switches' in group_names"
+    - podium_switch_template is defined
+
+# ============================================================
+# Configure System Settings via HTTP API
+# ============================================================
+- name: Configure system settings via HTTP API
+  network.zyxel.zyxel_system:
+    hostname: "{{ switch_hostname | default(inventory_hostname | regex_replace('\\..*$', '')) }}"
+    location: "{{ switch_location | default(omit) }}"
+    contact: "{{ zyxel_config.system.contact | default('admin@disconet.local') }}"
+    ntp_servers: "{{ zyxel_config.management.ntp.servers | default(switch_template.system.ntp_servers | default(omit)) }}"
+    timezone: "{{ zyxel_config.system.timezone | default(switch_template.system.timezone | default(omit)) }}"
+  tags: [zyxel, base, system]
+
+# ============================================================
+# Configure Syslog via HTTP API (if module available)
+# ============================================================
+- name: Configure syslog server
+  network.zyxel.zyxel_syslog:
+    server: "{{ zyxel_config.management.syslog.server }}"
+    enabled: true
+  when:
+    - zyxel_config.management.syslog.enabled | default(false)
+    - zyxel_config.management.syslog.server is defined
+  tags: [zyxel, base, syslog]
+  ignore_errors: true  # Module may not be fully implemented
+
+# ============================================================
+# Display Summary
+# ============================================================
+- name: Display base configuration summary
+  ansible.builtin.debug:
+    msg: |
+      ═══════════════════════════════════════════════════════════
+      Base configuration applied to {{ inventory_hostname }}
+      ═══════════════════════════════════════════════════════════
+      Hostname: {{ switch_hostname | default(inventory_hostname | regex_replace('\\..*$', '')) }}
+      Location: {{ switch_location | default('not set') }}
+      Connection: HTTP API (httpapi)
+  tags: [zyxel, base, summary]
+

@@ -1,10 +1,7 @@
 # Zyxel Switch Group Variables
 ---
-# Zyxel credentials (use ansible-vault in production)
-zyxel_user: admin
-# zyxel_password: !vault |
-#   $ANSIBLE_VAULT;1.1;AES256
-#   ...
+# Zyxel credentials are stored in group_vars/zyxel/vault.yml (encrypted)
+# and referenced in group_vars/zyxel/vars.yml
 
 # Default Zyxel configuration
 zyxel_config:

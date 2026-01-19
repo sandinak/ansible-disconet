@@ -1,0 +1,87 @@
+# zyxel_vlans role - Configure VLANs on Zyxel switches
+# Uses HTTP API modules for reliable configuration on GS1900/GS1915/GS1920
+#
+# This role uses the golden config pattern:
+#   - Template VLANs from group_vars (idf_switch_template.vlans, etc.)
+#   - Can also use the old required_vlans format for backward compatibility
+#
+# Connection: Requires 'httpapi' connection (set in playbook or group_vars)
+---
+
+# ============================================================
+# Load switch template based on group membership
+# ============================================================
+- name: Set switch template (IDF switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ idf_switch_template }}"
+  when:
+    - "'idf_switches' in group_names"
+    - idf_switch_template is defined
+
+- name: Set switch template (Core switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ core_switch_template }}"
+  when:
+    - "'core_switches' in group_names"
+    - core_switch_template is defined
+
+- name: Set switch template (Podium switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ podium_switch_template | default({}) }}"
+  when:
+    - "'podium_switches' in group_names"
+    - podium_switch_template is defined
+
+# ============================================================
+# Configure VLANs from Golden Config Template
+# ============================================================
+# New format: switch_template.vlans is a dict like {"1": {"name": "default", ...}}
+# Include port membership (untagged_ports and tagged_ports) from golden config
+- name: Configure VLANs from golden config template
+  network.zyxel.zyxel_vlan:
+    vlan_id: "{{ item.key }}"
+    name: "{{ item.value.name }}"
+    untagged_ports: "{{ item.value.untagged_ports | default(omit) }}"
+    tagged_ports: "{{ item.value.tagged_ports | default(omit) }}"
+    state: present
+  loop: "{{ switch_template.vlans | default({}) | dict2items }}"
+  loop_control:
+    label: "VLAN {{ item.key }} ({{ item.value.name }})"
+  when:
+    - switch_template is defined
+    - switch_template.vlans is defined
+    - switch_template.vlans is mapping
+  tags: [zyxel, vlans, config]
+
+# ============================================================
+# Backward Compatibility: Configure VLANs from required_vlans list
+# ============================================================
+# Old format: switch_template.required_vlans is a list like [{"id": 1, "name": "default"}]
+- name: Configure VLANs from required_vlans list (legacy format)
+  network.zyxel.zyxel_vlan:
+    vlan_id: "{{ item.id }}"
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ switch_template.required_vlans | default([]) }}"
+  loop_control:
+    label: "VLAN {{ item.id }} ({{ item.name }})"
+  when:
+    - switch_template is defined
+    - switch_template.required_vlans is defined
+    - switch_template.vlans is not defined
+  tags: [zyxel, vlans, config]
+
+# ============================================================
+# Display Summary
+# ============================================================
+- name: Display VLAN configuration summary
+  ansible.builtin.debug:
+    msg: |
+      ═══════════════════════════════════════════════════════════
+      VLAN configuration applied to {{ inventory_hostname }}
+      ═══════════════════════════════════════════════════════════
+      Switch Type: {{ 'IDF' if 'idf_switches' in group_names else 'Core' if 'core_switches' in group_names else 'Podium' if 'podium_switches' in group_names else 'Unknown' }}
+      VLANs Configured: {{ switch_template.vlans | default({}) | length if switch_template.vlans is defined else switch_template.required_vlans | default([]) | length }}
+  when: switch_template is defined
+  tags: [zyxel, vlans, summary]
+

@@ -1,0 +1,21 @@
+# zyxel_base role defaults
+---
+# Default system settings (can be overridden by group_vars or host_vars)
+zyxel_base_defaults:
+  system:
+    contact: "admin@disconet.local"
+    location: "Disconet Data Center"
+  management:
+    ssh:
+      enabled: true
+    telnet:
+      enabled: false
+    https:
+      enabled: true
+    ntp:
+      enabled: true
+      servers: []
+    syslog:
+      enabled: true
+      server: ""
+

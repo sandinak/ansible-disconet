@@ -26,11 +26,12 @@ collections/
 Thumbs.db
 
 # Secrets (never commit these)
-*.vault
-vault.yml
+# Note: Encrypted vault.yml files SHOULD be committed
+# Only the vault password file should be kept secret
+.vault_pass
+.vault_password
 secrets.yml
-**/host_vars/*/vault.yml
-**/group_vars/*/vault.yml
+*_unencrypted.yml
 
 # Logs
 *.log

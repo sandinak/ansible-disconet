@@ -1,0 +1,33 @@
+---
+# IDF Switch 1 - Golden Config Reference Switch
+# This switch is the authoritative source for the idf_switches template
+# Owner: DNet Team
+# Use-case: IDF Switch
+
+# ============================================================
+# Host-Specific Overrides (these override the golden config)
+# ============================================================
+switch_hostname: sw-idf1
+switch_management_ip: 172.19.1.17
+switch_location: "IDF 1"
+switch_description: "IDF Access Switch - Main"
+switch_role: idf
+
+# ============================================================
+# Port Overrides (optional - override specific ports from template)
+# ============================================================
+# port_overrides:
+#   "1":
+#     description: "Special device on port 1"
+#     pvid: 102
+
+# ============================================================
+# Connection settings
+# ============================================================
+ansible_host: 172.19.1.17
+ansible_user: admin
+# ansible_password: in vault
+
+# Notes
+notes: "Golden config reference switch for IDF switches"
+

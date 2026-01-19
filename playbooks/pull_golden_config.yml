@@ -1,0 +1,124 @@
+---
+# Pull Golden Configuration from Reference Switches
+# This playbook extracts configuration from reference switches and writes
+# it to group_vars as templates that can be applied to other switches.
+#
+# Golden config reference switches (defined in inventory):
+#   - sw-idf1  (GS1920-24HP)  -> group_vars/idf_switches.yml
+#   - sw-core1 (GS1915-24EP)  -> group_vars/core_switches.yml
+#   - sw-pod1  (GS1900-8HP)   -> group_vars/podium_switches.yml
+#   - sw-junk  (GS1915-24)    -> group_vars/special_switches.yml
+#
+# Usage:
+#   Pull from all golden config switches:
+#     ansible-playbook playbooks/pull_golden_config.yml -l golden_config
+#
+#   Pull from a specific golden switch:
+#     ansible-playbook playbooks/pull_golden_config.yml -l sw-idf1.disconet.work
+
+- name: Pull Golden Configuration from Reference Switches
+  hosts: golden_config
+  gather_facts: false
+  vars:
+    ansible_connection: httpapi
+    ansible_httpapi_use_ssl: true
+    ansible_httpapi_validate_certs: false
+    inventory_dir: "{{ playbook_dir }}/../inventory"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Determine switch type and output file from inventory vars
+      ansible.builtin.set_fact:
+        switch_type: "{{ golden_config_for | regex_replace('_switches$', '') }}"
+        output_file: "{{ golden_template_file | basename }}"
+
+    - name: Get system information
+      network.zyxel.zyxel_system:
+      register: system_info
+      ignore_errors: true
+
+    - name: Get VLAN information
+      network.zyxel.zyxel_vlans_info:
+      register: vlans_info
+
+    - name: Get port information
+      network.zyxel.zyxel_ports_info:
+      register: ports_info
+
+    - name: Get VLAN port settings (PVID, trunking)
+      network.zyxel.zyxel_vlan_ports_info:
+      register: vlan_ports_info
+
+    - name: Build golden config template
+      ansible.builtin.set_fact:
+        golden_config:
+          # Metadata
+          _meta:
+            pulled_from: "{{ inventory_hostname }}"
+            pulled_at: "{{ timestamp }}"
+            switch_type: "{{ switch_type }}"
+            switch_model: "{{ switch_model | default('unknown') }}"
+            target_group: "{{ golden_config_for }}"
+
+          # VLAN configuration
+          vlans: "{{ vlans_info.vlans | default({}) }}"
+
+          # Port configuration
+          ports: "{{ ports_info.ports | default({}) }}"
+
+          # Port VLAN settings (PVID, trunking)
+          port_vlan_settings: "{{ vlan_ports_info.ports | default({}) }}"
+
+          # System settings (if available)
+          system: "{{ system_info.system | default({}) }}"
+
+    - name: Display pulled configuration summary
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Golden Config Pulled from {{ inventory_hostname }}
+          ═══════════════════════════════════════════════════════════
+          Switch Type: {{ switch_type }}
+          Output File: {{ output_file }}
+
+          VLANs: {{ vlans_info.vlans | default({}) | length }}
+          Ports: {{ ports_info.ports | default({}) | length }}
+
+          Configuration will be written to:
+            {{ inventory_dir }}/group_vars/{{ output_file }}
+
+    - name: Write golden config to group_vars
+      ansible.builtin.template:
+        src: golden_config_template.yml.j2
+        dest: "{{ inventory_dir }}/group_vars/{{ output_file }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Backup previous config
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/group_vars/{{ output_file }}"
+        dest: "{{ inventory_dir }}/group_vars/{{ output_file }}.{{ timestamp }}.bak"
+        mode: '0644'
+      delegate_to: localhost
+      ignore_errors: true
+
+- name: Summary
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display summary
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Golden Configuration Pull Complete
+          ═══════════════════════════════════════════════════════════
+
+          Reference configurations have been pulled and saved to group_vars.
+
+          To apply this configuration to other switches:
+            ansible-playbook playbooks/apply_golden_config.yml --limit idf_switches
+
+          To sync a specific switch type:
+            ansible-playbook playbooks/sync_idf_switches.yml
+            ansible-playbook playbooks/sync_core_switches.yml
+

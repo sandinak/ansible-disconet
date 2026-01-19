@@ -1,0 +1,54 @@
+---
+# Playbook to verify management settings on all Zyxel switches
+# Usage: ansible-playbook playbooks/configure_management.yml [-l <host_pattern>]
+#
+# This playbook verifies:
+# - SNMP is disabled (or shows current status)
+# - Nebula/cloud discovery is disabled
+#
+# Note: These switches don't expose SNMP configuration via CLI commands.
+# Configuration must be done via the web interface or is not supported.
+
+- name: Verify Management Settings on Zyxel Switches
+  hosts: zyxel
+  gather_facts: false
+  connection: network_cli
+
+  tasks:
+    - name: Display target switch
+      ansible.builtin.debug:
+        msg: "Checking management settings on {{ inventory_hostname }}"
+
+    - name: Get running config (check for service-control settings)
+      ansible.netcommon.cli_command:
+        command: "show running-config"
+      register: running_config
+      ignore_errors: true
+
+    - name: Get SNMP status
+      ansible.netcommon.cli_command:
+        command: "show snmp"
+      register: snmp_status
+      ignore_errors: true
+
+    - name: Get cloud status
+      ansible.netcommon.cli_command:
+        command: "show cloud"
+      register: cloud_status
+      ignore_errors: true
+
+    - name: Parse management status
+      ansible.builtin.set_fact:
+        snmp_disabled: "{{ 'no service-control snmp' in (running_config.stdout | default('')) }}"
+        nebula_disabled: "{{ 'no cloud center discovery' in (running_config.stdout | default('')) or 'Nebula Discovery: Disable' in (cloud_status.stdout | default('')) }}"
+
+    - name: Display verification results
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Management Status for {{ inventory_hostname }}
+          ═══════════════════════════════════════════════════════════
+          SNMP Service:     {{ '✅ DISABLED' if snmp_disabled else '⚠️  ENABLED (check config)' }}
+          Nebula Discovery: {{ '✅ DISABLED' if nebula_disabled else '⚠️  ENABLED (needs attention)' }}
+          ═══════════════════════════════════════════════════════════
+

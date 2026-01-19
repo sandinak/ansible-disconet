@@ -1,0 +1,24 @@
+---
+# pfSense Firewall 1
+# IP: 172.19.1.252
+# Owner: Dnet Team
+# Use-case: Firewall
+
+hostname: pfsense1
+management_ip: 172.19.1.252
+location: "Core Network"
+role: firewall_primary
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Firewall specific settings
+wan_ip: "192.x.x.176"  # Internal WAN IP
+failover_vip: 172.19.15.1
+failover_ip: 172.19.15.2
+vhid_password: "REDACTED"
+
+# Notes
+notes: "Primary firewall - admin / REDACTED - internal WAN ip - 192.x.x.176"
+

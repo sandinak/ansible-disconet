@@ -1,66 +1,126 @@
-# Common VLANs
+# Common VLANs - From DistrictCon Network Spreadsheet
+# Domain: disconet.work
+# Routed Network: 172.19.0.0/16
+
 vlans:
+  # CORE Networks
   core:
     id: 1
-    name: management vlan
+    name: CORE
     subnet: 172.19.1.0/24
+    owner: Dnet Team
+    use_case: Core-Switches
+    sw_notes: Trunk, PVID links
+    notes: "NO HOSTS PUT ON HERE W/O Branson's Approval"
+
   internal:
     id: 102
-    name: Internal
+    name: INT
     subnet: 172.19.2.0/24
+    owner: Dnet Team
+    use_case: Internal Services
+    sw_notes: VLAN
+    notes: proxmox, etc.
+
   public:
     id: 103
-    name: Public Services
+    name: PUB
     subnet: 172.19.3.0/24
-  wifiadmin:
-    id: 104 
-    name: Wifi Admin
-    subnet: 172.19.4.0/24
-  admin:
-    id: 106
-    name: Admin
-    subnet: 172.19.5.0/24
+    owner: Dnet Team
+    use_case: Public Services
+    sw_notes: VLAN
+    notes: DNS, NTP
 
-# this shouldn't be used 
+  wifiadmin:
+    id: 104
+    name: WIFIADMIN
+    subnet: 172.19.4.0/24
+    owner: Dnet Team
+    use_case: Wifi Admin
+    sw_notes: TRUNK, PVID APSs
+    notes: ""
+
+  admin:
+    id: 105
+    name: ADMIN
+    subnet: 172.19.5.0/25
+    owner: Dnet Team
+    use_case: Admin Lappyies
+    sw_notes: ""
+    notes: ""
+
+  # Sync/Failover - DO NOT USE for hosts
   sync:
     id: 115
-    name: Sync DO NOT USE
+    name: SYNC
     subnet: 172.19.15.0/24
+    owner: Dnet Team
+    use_case: Loopbacks & / ARP
+    sw_notes: VLAN, Forbid
+    notes: NOT USED
 
-# CON Networks
+  # CON Networks
   jtw:
     id: 116
-    name: Jump the wall
+    name: JTW
     subnet: 172.19.16.0/24
-  
+    owner: ""
+    use_case: Jump the Wall
+    sw_notes: VLAN
+    notes: ""
+
   cfp:
     id: 117
-    name: Call for Papers
+    name: CFP
     subnet: 172.19.17.0/24
-  
-  junk: 
+    owner: ""
+    use_case: CFP
+    sw_notes: ""
+    notes: ""
+
+  junk:
     id: 118
-    name: Junkuyard
+    name: JUNK
     subnet: 172.19.18.0/24
-  
+    owner: ""
+    use_case: Junkyard Netw
+    sw_notes: ""
+    notes: ""
+
   speaker:
     id: 119
-    name: Speaker Network
+    name: SPEAKER
     subnet: 172.19.19.0/24
+    owner: ""
+    use_case: Speaker Wifi
+    sw_notes: ""
+    notes: ""
 
   registration:
     id: 120
-    name: Registration
+    name: REG
     subnet: 172.19.20.0/24
+    owner: ""
+    use_case: Registration
+    sw_notes: ""
+    notes: ""
 
-#PUBLIC NETWORKS
+  # PUBLIC NETWORKS
   open:
     id: 228
-    name: Open Wifi
+    name: OPEN
     subnet: 172.19.128.0/18
-  
+    owner: DNet Team
+    use_case: Open Wifi
+    sw_notes: ""
+    notes: DHCP Pool 1
+
   wpa:
     id: 292
-    name: WPA Wifi
+    name: WPA
     subnet: 172.19.192.0/18
+    owner: Dnet Team
+    use_case: WPA?
+    sw_notes: ""
+    notes: DHCP Pool 2
 

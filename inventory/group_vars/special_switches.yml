@@ -1,0 +1,16 @@
+# Special Purpose Switch Group Variables
+# GS1915-24 series switches
+---
+
+# Model type for httpapi plugin (GS1915 series)
+ansible_zyxel_model: gs1915
+
+# These switches serve specific purposes (Junkyard, CFP)
+# Configuration may vary based on specific needs
+
+# Inherit common Zyxel settings
+zyxel_user: admin
+
+# These switches may have custom configurations
+# defined in their individual host_vars files
+

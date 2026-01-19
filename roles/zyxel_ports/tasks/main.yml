@@ -1,0 +1,181 @@
+# zyxel_ports role - Configure port VLAN assignments on Zyxel switches
+# Uses HTTP API modules for reliable configuration on GS1900/GS1915/GS1920
+#
+# This role uses the golden config pattern:
+#   - Template config from group_vars (idf_switch_template, core_switch_template, etc.)
+#   - Host-specific overrides from host_vars (port_overrides)
+#
+# Supports two formats:
+#   - New format: port_vlan_settings with numeric keys (from pull_golden_config)
+#   - Legacy format: grouped ports (ap_ports, podium_ports, trunk_ports)
+#
+# Connection: Requires 'httpapi' connection (set in playbook or group_vars)
+---
+
+# ============================================================
+# Load switch template based on group membership
+# ============================================================
+- name: Set switch template (IDF switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ idf_switch_template }}"
+  when:
+    - "'idf_switches' in group_names"
+    - idf_switch_template is defined
+
+- name: Set switch template (Core switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ core_switch_template }}"
+  when:
+    - "'core_switches' in group_names"
+    - core_switch_template is defined
+
+- name: Set switch template (Podium switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ podium_switch_template | default({}) }}"
+  when:
+    - "'podium_switches' in group_names"
+    - podium_switch_template is defined
+
+- name: Set switch template (Special switches)
+  ansible.builtin.set_fact:
+    switch_template: "{{ special_switch_template | default({}) }}"
+  when:
+    - "'special_switches' in group_names"
+    - special_switch_template is defined
+
+# ============================================================
+# Detect config format (new vs legacy)
+# ============================================================
+- name: Detect port config format
+  ansible.builtin.set_fact:
+    use_new_format: "{{ switch_template.port_vlan_settings is defined and switch_template.port_vlan_settings | length > 0 }}"
+    use_legacy_format: "{{ switch_template.ports is defined and (switch_template.ports.ap_ports is defined or switch_template.ports.trunk_ports is defined or switch_template.ports.podium_ports is defined) }}"
+  when: switch_template is defined
+
+# ============================================================
+# Apply Port VLAN Settings from Golden Config (NEW FORMAT)
+# ============================================================
+# New format: port_vlan_settings is a dict with numeric port keys
+# Uses bulk module for efficiency (single HTTP request for all ports)
+- name: Configure all port PVID and VLAN settings from template (new format - bulk)
+  network.zyxel.zyxel_pvids:
+    port_settings: "{{ switch_template.port_vlan_settings }}"
+    num_ports: "{{ switch_template.port_vlan_settings | length }}"
+  when:
+    - switch_template is defined
+    - use_new_format | default(false)
+  tags: [zyxel, ports, pvid]
+
+# ============================================================
+# Apply Port Settings from Golden Config (NEW FORMAT)
+# ============================================================
+# Configure port descriptions/names from the new format
+- name: Configure port descriptions from template (new format)
+  network.zyxel.zyxel_port:
+    name: "{{ item.key }}"
+    state: "{{ 'enabled' if item.value.enabled | default(true) else 'disabled' }}"
+    speed: "{{ item.value.speed | default(omit) }}"
+    description: "{{ item.value.name | default(omit) }}"
+  loop: "{{ switch_template.ports | dict2items | sort(attribute='key') }}"
+  loop_control:
+    label: "Port {{ item.key }} ({{ item.value.name | default('unnamed') }})"
+  when:
+    - switch_template is defined
+    - switch_template.ports is defined
+    - use_new_format | default(false)
+  tags: [zyxel, ports, config]
+
+# ============================================================
+# Apply Port Settings from Legacy Format (grouped ports)
+# ============================================================
+# Legacy format: ports contains groups like ap_ports, podium_ports, trunk_ports
+
+- name: Configure AP ports PVID (legacy format)
+  network.zyxel.zyxel_pvid:
+    port: "{{ item }}"
+    pvid: "{{ vlans.wifiadmin.id | default(vlans.internal.id) }}"
+    vlan_trunking: true
+  loop: "{{ range(1, 19) | list | map('string') | list }}"
+  loop_control:
+    label: "Port {{ item }} PVID={{ vlans.wifiadmin.id | default(vlans.internal.id) }}"
+  when:
+    - switch_template is defined
+    - use_legacy_format | default(false)
+    - switch_template.ports.ap_ports is defined
+  tags: [zyxel, ports, pvid, legacy]
+
+- name: Configure Podium ports PVID (legacy format)
+  network.zyxel.zyxel_pvid:
+    port: "{{ item }}"
+    pvid: "{{ vlans.core.id }}"
+    vlan_trunking: true
+  loop: "{{ range(19, 25) | list | map('string') | list }}"
+  loop_control:
+    label: "Port {{ item }} PVID={{ vlans.core.id }}"
+  when:
+    - switch_template is defined
+    - use_legacy_format | default(false)
+    - switch_template.ports.podium_ports is defined
+  tags: [zyxel, ports, pvid, legacy]
+
+- name: Configure Trunk ports PVID (legacy format)
+  network.zyxel.zyxel_pvid:
+    port: "{{ item }}"
+    pvid: "{{ vlans.core.id }}"
+    vlan_trunking: true
+  loop: "{{ range(25, 29) | list | map('string') | list }}"
+  loop_control:
+    label: "Port {{ item }} PVID={{ vlans.core.id }}"
+  when:
+    - switch_template is defined
+    - use_legacy_format | default(false)
+    - switch_template.ports.trunk_ports is defined
+  tags: [zyxel, ports, pvid, legacy]
+
+# ============================================================
+# Apply Host-Specific Port Overrides (from host_vars)
+# ============================================================
+- name: Apply port PVID overrides from host_vars
+  network.zyxel.zyxel_pvid:
+    port: "{{ item.key }}"
+    pvid: "{{ item.value.pvid }}"
+    vlan_trunking: "{{ item.value.vlan_trunking | default(omit) }}"
+  loop: "{{ port_overrides | default({}) | dict2items }}"
+  loop_control:
+    label: "Port {{ item.key }} override PVID={{ item.value.pvid }}"
+  when:
+    - port_overrides is defined
+    - port_overrides | length > 0
+    - item.value.pvid is defined
+  tags: [zyxel, ports, overrides]
+
+- name: Apply port description overrides from host_vars
+  network.zyxel.zyxel_port:
+    name: "{{ item.key }}"
+    description: "{{ item.value.description }}"
+  loop: "{{ port_overrides | default({}) | dict2items }}"
+  loop_control:
+    label: "Port {{ item.key }} description={{ item.value.description }}"
+  when:
+    - port_overrides is defined
+    - port_overrides | length > 0
+    - item.value.description is defined
+  tags: [zyxel, ports, overrides]
+
+# ============================================================
+# Display Summary
+# ============================================================
+- name: Display port configuration summary
+  ansible.builtin.debug:
+    msg: |
+      ═══════════════════════════════════════════════════════════
+      Port configuration applied to {{ inventory_hostname }}
+      ═══════════════════════════════════════════════════════════
+      Switch Type: {{ 'IDF' if 'idf_switches' in group_names else 'Core' if 'core_switches' in group_names else 'Podium' if 'podium_switches' in group_names else 'Special' if 'special_switches' in group_names else 'Unknown' }}
+      Template Source: {{ switch_template._meta.source_switch | default('group_vars') }}
+      Config Format: {{ 'New (port_vlan_settings)' if use_new_format | default(false) else 'Legacy (grouped ports)' if use_legacy_format | default(false) else 'Unknown' }}
+      Ports Configured: {{ switch_template.port_vlan_settings | default({}) | length if use_new_format | default(false) else '28 (legacy)' }}
+      Port Overrides: {{ port_overrides | default({}) | length }}
+  when: switch_template is defined
+  tags: [zyxel, ports, summary]
+

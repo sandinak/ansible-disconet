@@ -1,0 +1,19 @@
+---
+ansible_host: 172.19.1.16
+# Core Switch 2
+# IP: 172.19.1.16
+# Owner: DNet Team
+# Use-case: Core switch (Backup)
+
+switch_hostname: sw-core2
+switch_management_ip: 172.19.1.16
+switch_location: "Core Network - Backup"
+switch_role: core_backup
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Switch specific notes
+notes: "Backup core switch - admin / REDACTED"
+

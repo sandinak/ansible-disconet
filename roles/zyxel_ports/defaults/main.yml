@@ -1,0 +1,18 @@
+# zyxel_ports role defaults
+---
+# Default port settings
+# These are typically overridden by group_vars templates
+
+zyxel_ports_defaults:
+  # Default speed for all ports
+  speed: auto
+  
+  # Default duplex
+  duplex: auto
+  
+  # Enable ports by default
+  enabled: true
+  
+  # No port security by default
+  port_security: false
+

@@ -1,0 +1,32 @@
+---
+# IDF Switch 3
+# Owner: DNet Team
+# Use-case: IDF Access Switch (Backup/Tertiary)
+
+# ============================================================
+# Host-Specific Overrides (these override the golden config)
+# ============================================================
+switch_hostname: sw-idf3
+switch_management_ip: 172.19.1.19
+switch_location: "IDF 3"
+switch_description: "IDF Access Switch - Backup"
+switch_role: idf
+
+# ============================================================
+# Port Overrides (optional - override specific ports from template)
+# ============================================================
+# port_overrides:
+#   "1":
+#     description: "Special device on port 1"
+#     pvid: 102
+
+# ============================================================
+# Connection settings
+# ============================================================
+ansible_host: 172.19.1.19
+ansible_user: admin
+# ansible_password: in vault
+
+# Notes
+notes: "IDF Switch 3 - Backup/Tertiary"
+

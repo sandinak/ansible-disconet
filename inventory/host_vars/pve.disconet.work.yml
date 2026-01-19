@@ -1,0 +1,18 @@
+---
+# Proxmox Hypervisor
+# IP: 172.19.1.30
+# Owner: DNet Team
+# Use-case: Proxmox
+
+hostname: pve
+management_ip: 172.19.1.30
+location: "Core Network"
+role: hypervisor
+
+# Credentials
+ansible_user: admin
+# ansible_password: should be in vault
+
+# Notes
+notes: "Proxmox hypervisor - admin / REDACTED"
+
