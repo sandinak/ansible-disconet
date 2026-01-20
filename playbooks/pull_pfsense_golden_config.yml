@@ -63,8 +63,114 @@
       pfsensible.core.pfsense_phpshell:
         cmd: |
           global $config;
-          echo json_encode(isset($config['dhcpd']) ? array_keys($config['dhcpd']) : array());
+          $dhcp = array();
+          if (isset($config['dhcpd'])) {
+            foreach ($config['dhcpd'] as $iface => $dhcpconf) {
+              $dhcp[$iface] = array(
+                'enable' => isset($dhcpconf['enable']),
+                'range_from' => isset($dhcpconf['range']['from']) ? $dhcpconf['range']['from'] : '',
+                'range_to' => isset($dhcpconf['range']['to']) ? $dhcpconf['range']['to'] : '',
+                'gateway' => isset($dhcpconf['gateway']) ? $dhcpconf['gateway'] : '',
+                'domain' => isset($dhcpconf['domain']) ? $dhcpconf['domain'] : '',
+                'dnsserver' => isset($dhcpconf['dnsserver']) ? $dhcpconf['dnsserver'] : array(),
+                'defaultleasetime' => isset($dhcpconf['defaultleasetime']) ? $dhcpconf['defaultleasetime'] : '',
+                'maxleasetime' => isset($dhcpconf['maxleasetime']) ? $dhcpconf['maxleasetime'] : ''
+              );
+            }
+          }
+          echo json_encode($dhcp);
       register: dhcp_config
+      changed_when: false
+
+    - name: Get DHCP static leases
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $statics = array();
+          if (isset($config['dhcpd'])) {
+            foreach ($config['dhcpd'] as $iface => $dhcpconf) {
+              if (isset($dhcpconf['staticmap'])) {
+                foreach ($dhcpconf['staticmap'] as $static) {
+                  $statics[] = array(
+                    'interface' => $iface,
+                    'mac' => isset($static['mac']) ? $static['mac'] : '',
+                    'ipaddr' => isset($static['ipaddr']) ? $static['ipaddr'] : '',
+                    'hostname' => isset($static['hostname']) ? $static['hostname'] : '',
+                    'descr' => isset($static['descr']) ? $static['descr'] : ''
+                  );
+                }
+              }
+            }
+          }
+          echo json_encode($statics);
+      register: dhcp_static_config
+      changed_when: false
+
+    - name: Get firewall rules
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $rules = array();
+          if (isset($config['filter']['rule'])) {
+            foreach ($config['filter']['rule'] as $rule) {
+              $rules[] = array(
+                'interface' => isset($rule['interface']) ? $rule['interface'] : '',
+                'type' => isset($rule['type']) ? $rule['type'] : 'pass',
+                'ipprotocol' => isset($rule['ipprotocol']) ? $rule['ipprotocol'] : 'inet',
+                'protocol' => isset($rule['protocol']) ? $rule['protocol'] : 'any',
+                'source' => isset($rule['source']) ? $rule['source'] : array(),
+                'destination' => isset($rule['destination']) ? $rule['destination'] : array(),
+                'descr' => isset($rule['descr']) ? $rule['descr'] : '',
+                'disabled' => isset($rule['disabled']),
+                'log' => isset($rule['log']),
+                'floating' => isset($rule['floating'])
+              );
+            }
+          }
+          echo json_encode($rules);
+      register: firewall_rules_config
+      changed_when: false
+
+    - name: Get CARP/VHID configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $carp = array();
+          if (isset($config['virtualip']['vip'])) {
+            foreach ($config['virtualip']['vip'] as $vip) {
+              if (isset($vip['mode']) && $vip['mode'] == 'carp') {
+                $carp[] = array(
+                  'interface' => isset($vip['interface']) ? $vip['interface'] : '',
+                  'vhid' => isset($vip['vhid']) ? $vip['vhid'] : '',
+                  'advskew' => isset($vip['advskew']) ? $vip['advskew'] : '',
+                  'advbase' => isset($vip['advbase']) ? $vip['advbase'] : '',
+                  'subnet' => isset($vip['subnet']) ? $vip['subnet'] : '',
+                  'subnet_bits' => isset($vip['subnet_bits']) ? $vip['subnet_bits'] : '',
+                  'descr' => isset($vip['descr']) ? $vip['descr'] : ''
+                );
+              }
+            }
+          }
+          echo json_encode($carp);
+      register: carp_config
+      changed_when: false
+
+    - name: Get HA sync configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $hasync = array();
+          if (isset($config['hasync'])) {
+            $hasync = array(
+              'pfsyncenabled' => isset($config['hasync']['pfsyncenabled']),
+              'pfsyncpeerip' => isset($config['hasync']['pfsyncpeerip']) ? $config['hasync']['pfsyncpeerip'] : '',
+              'pfsyncinterface' => isset($config['hasync']['pfsyncinterface']) ? $config['hasync']['pfsyncinterface'] : '',
+              'synchronizetoip' => isset($config['hasync']['synchronizetoip']) ? $config['hasync']['synchronizetoip'] : '',
+              'username' => isset($config['hasync']['username']) ? $config['hasync']['username'] : ''
+            );
+          }
+          echo json_encode($hasync);
+      register: hasync_config
       changed_when: false
 
     - name: Parse configurations
@@ -73,7 +179,11 @@
         pfsense_interfaces: "{{ interface_config.stdout_lines[-1] | from_json }}"
         pfsense_vlans: "{{ vlan_config.stdout_lines[-1] | from_json }}"
         pfsense_aliases: "{{ alias_config.stdout_lines[-1] | from_json }}"
-        pfsense_dhcp_interfaces: "{{ dhcp_config.stdout_lines[-1] | from_json }}"
+        pfsense_dhcp: "{{ dhcp_config.stdout_lines[-1] | from_json }}"
+        pfsense_dhcp_static: "{{ dhcp_static_config.stdout_lines[-1] | from_json }}"
+        pfsense_firewall_rules: "{{ firewall_rules_config.stdout_lines[-1] | from_json }}"
+        pfsense_carp: "{{ carp_config.stdout_lines[-1] | from_json }}"
+        pfsense_hasync: "{{ hasync_config.stdout_lines[-1] | from_json }}"
 
     - name: Display configuration summary
       ansible.builtin.debug:
@@ -85,7 +195,11 @@
           Interfaces: {{ pfsense_interfaces | length }}
           VLANs: {{ pfsense_vlans | length }}
           Aliases: {{ pfsense_aliases | length }}
-          DHCP on: {{ pfsense_dhcp_interfaces | join(', ') }}
+          DHCP Servers: {{ pfsense_dhcp | length }}
+          Static Leases: {{ pfsense_dhcp_static | length }}
+          Firewall Rules: {{ pfsense_firewall_rules | length }}
+          CARP VIPs: {{ pfsense_carp | length }}
+          HA Sync: {{ 'Enabled' if pfsense_hasync.pfsyncenabled | default(false) else 'Disabled' }}
 
     - name: Write golden config
       ansible.builtin.copy:
@@ -107,7 +221,16 @@
           {{ pfsense_vlans | to_nice_yaml(indent=2) | indent(4, first=true) }}
             aliases:
           {{ pfsense_aliases | to_nice_yaml(indent=2) | indent(4, first=true) }}
-            dhcp_interfaces: {{ pfsense_dhcp_interfaces }}
+            dhcp:
+          {{ pfsense_dhcp | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            dhcp_static_leases:
+          {{ pfsense_dhcp_static | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            firewall_rules:
+          {{ pfsense_firewall_rules | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            carp:
+          {{ pfsense_carp | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            hasync:
+          {{ pfsense_hasync | to_nice_yaml(indent=2) | indent(4, first=true) }}
         dest: "{{ output_file }}"
       delegate_to: localhost
 

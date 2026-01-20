@@ -1,11 +1,11 @@
 # pfSense Golden Configuration
 # Pulled from: pfsense1.disconet.work
-# Pull date: 20260119-210051
+# Pull date: 20260119-210523
 ---
 pfsense_golden_config:
   _meta:
     source: "pfsense1.disconet.work"
-    pulled_at: "20260119-210051"
+    pulled_at: "20260119-210523"
 
   system:
     dns_servers:
@@ -189,4 +189,535 @@ pfsense_golden_config:
   aliases:
     []
 
-  dhcp_interfaces: ['lan', 'opt13', 'opt3', 'opt4', 'opt5', 'opt7', 'opt8', 'opt9', 'opt10', 'opt11', 'opt14', 'opt6', 'opt12', 'opt15']
+  dhcp:
+    lan:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.1.1
+      domain: lan.disconet.work
+      enable: true
+      gateway: 172.19.1.1
+      maxleasetime: ''
+      range_from: 172.19.1.100
+      range_to: 172.19.1.250
+    opt10:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.19.1
+      domain: speaker.disconet.work
+      enable: true
+      gateway: 172.19.19.1
+      maxleasetime: ''
+      range_from: 172.19.19.10
+      range_to: 172.19.19.254
+    opt11:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.20.1
+      domain: ''
+      enable: true
+      gateway: 172.19.20.1
+      maxleasetime: ''
+      range_from: 172.19.20.10
+      range_to: 172.19.20.254
+    opt12:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.192.1
+      domain: ''
+      enable: true
+      gateway: 172.19.192.1
+      maxleasetime: ''
+      range_from: 172.19.192.10
+      range_to: 172.19.255.254
+    opt13:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.4.1
+      domain: ''
+      enable: true
+      gateway: 172.19.4.1
+      maxleasetime: ''
+      range_from: 172.19.4.100
+      range_to: 172.19.4.254
+    opt14:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.21.1
+      domain: vov.disconet.work
+      enable: true
+      gateway: 172.19.21.1
+      maxleasetime: ''
+      range_from: 172.19.21.10
+      range_to: 172.19.21.254
+    opt15:
+      defaultleasetime: ''
+      dnsserver: []
+      domain: ''
+      enable: false
+      gateway: ''
+      maxleasetime: ''
+      range_from: 172.16.0.128
+      range_to: 172.16.0.247
+    opt3:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.128.1
+      domain: ''
+      enable: true
+      gateway: 172.19.128.1
+      maxleasetime: ''
+      range_from: 172.19.128.10
+      range_to: 172.19.191.254
+    opt4:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.5.1
+      domain: admin.disconet.work
+      enable: true
+      gateway: 172.19.5.1
+      maxleasetime: ''
+      range_from: 172.19.5.10
+      range_to: 172.19.5.254
+    opt5:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.3.1
+      domain: ''
+      enable: true
+      gateway: 172.19.3.1
+      maxleasetime: ''
+      range_from: 172.19.3.10
+      range_to: 172.19.3.254
+    opt6:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.2.1
+      domain: ''
+      enable: true
+      gateway: 172.19.2.1
+      maxleasetime: ''
+      range_from: 172.19.2.10
+      range_to: 172.19.2.254
+    opt7:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.16.1
+      domain: jtw.disconet.work
+      enable: true
+      gateway: 172.19.16.1
+      maxleasetime: ''
+      range_from: 172.19.16.10
+      range_to: 172.19.16.254
+    opt8:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.17.1
+      domain: ''
+      enable: true
+      gateway: 172.19.17.1
+      maxleasetime: ''
+      range_from: 172.19.17.10
+      range_to: 172.19.17.254
+    opt9:
+      defaultleasetime: ''
+      dnsserver:
+      - 172.19.18.1
+      domain: junk.disconet.work
+      enable: true
+      gateway: 172.19.18.1
+      maxleasetime: ''
+      range_from: 172.19.18.10
+      range_to: 172.19.18.254
+
+  dhcp_static_leases:
+    - descr: ''
+      hostname: sw-core1
+      interface: lan
+      ipaddr: 172.19.1.15
+      mac: fc:22:f4:c3:75:b7
+    - descr: ''
+      hostname: sw-core2
+      interface: lan
+      ipaddr: 172.19.1.16
+      mac: fc:22:f4:c3:6d:b1
+    - descr: ''
+      hostname: sw-idf1
+      interface: lan
+      ipaddr: 172.19.1.17
+      mac: 70:49:a2:2a:87:e8
+    - descr: ''
+      hostname: sw-idf2
+      interface: lan
+      ipaddr: 172.19.1.18
+      mac: 70:49:a2:56:2f:38
+    - descr: ''
+      hostname: sw-idf3
+      interface: lan
+      ipaddr: 172.19.1.19
+      mac: 70:49:a2:2a:8d:1
+    - descr: ''
+      hostname: sw-pod1
+      interface: lan
+      ipaddr: 172.19.1.20
+      mac: 70:49:a2:3f:d6:64
+    - descr: ''
+      hostname: sw-pod2
+      interface: lan
+      ipaddr: 172.19.1.21
+      mac: f4:4d:5c:9d:72:82
+    - descr: ''
+      hostname: sw-pod3
+      interface: lan
+      ipaddr: 172.19.1.22
+      mac: 70:49:a2:3f:d6:88
+    - descr: ''
+      hostname: sw-junk
+      interface: lan
+      ipaddr: 172.19.1.23
+      mac: fc:22:f4:f9:ae:8c
+
+  firewall_rules:
+    - descr: SSH
+      destination:
+        any: ''
+        port: '22'
+      disabled: false
+      floating: true
+      interface: lan,opt4
+      ipprotocol: inet
+      log: false
+      protocol: tcp
+      source:
+        any: ''
+      type: pass
+    - descr: Admin Networks can connect to anything
+      destination:
+        any: ''
+      disabled: false
+      floating: true
+      interface: lan,opt4
+      ipprotocol: inet
+      log: false
+      protocol: any
+      source:
+        any: ''
+      type: pass
+    - descr: NTP
+      destination:
+        network: (self)
+        port: '123'
+      disabled: false
+      floating: true
+      interface: any
+      ipprotocol: inet
+      log: false
+      protocol: tcp/udp
+      source:
+        any: ''
+      type: pass
+    - descr: DNS
+      destination:
+        network: (self)
+        port: '53'
+      disabled: false
+      floating: true
+      interface: any
+      ipprotocol: inet
+      log: false
+      protocol: tcp/udp
+      source:
+        any: ''
+      type: pass
+    - descr: DHCP
+      destination:
+        network: (self)
+        port: 66-67
+      disabled: false
+      floating: true
+      interface: lan,opt1,opt3,opt4,opt5,opt6,opt7,opt8,opt9,opt10,opt11,opt12,opt13,opt14,opt15
+      ipprotocol: inet
+      log: false
+      protocol: tcp/udp
+      source:
+        any: ''
+      type: pass
+    - descr: PING
+      destination:
+        network: (self)
+      disabled: false
+      floating: true
+      interface: lan,opt4,opt13,opt15
+      ipprotocol: inet
+      log: false
+      protocol: icmp
+      source:
+        any: ''
+      type: pass
+    - descr: All networks can route to Internet
+      destination:
+        address: 172.19.0.0/16
+        not: ''
+      disabled: false
+      floating: true
+      interface: lan,opt3,opt4,opt5,opt6,opt7,opt8,opt9,opt10,opt11,opt12,opt13,opt14,opt15
+      ipprotocol: inet
+      log: false
+      protocol: any
+      source:
+        any: ''
+      type: pass
+    - descr: ''
+      destination:
+        any: ''
+      disabled: false
+      floating: false
+      interface: wan
+      ipprotocol: inet
+      log: false
+      protocol: tcp
+      source:
+        network: wanip
+      type: pass
+    - descr: NTP
+      destination:
+        address: 172.19.0.1
+        port: '123'
+      disabled: false
+      floating: false
+      interface: wan
+      ipprotocol: inet
+      log: false
+      protocol: udp
+      source:
+        network: wanip
+      type: pass
+    - descr: Default allow LAN to any rule
+      destination:
+        any: ''
+      disabled: false
+      floating: false
+      interface: lan
+      ipprotocol: inet
+      log: false
+      protocol: any
+      source:
+        network: lan
+      type: pass
+    - descr: Default allow LAN IPv6 to any rule
+      destination:
+        any: ''
+      disabled: false
+      floating: false
+      interface: lan
+      ipprotocol: inet6
+      log: false
+      protocol: any
+      source:
+        network: lan
+      type: pass
+    - descr: Allow configuration synchronisation
+      destination:
+        network: opt1
+        port: '443'
+      disabled: false
+      floating: false
+      interface: opt1
+      ipprotocol: inet
+      log: false
+      protocol: tcp
+      source:
+        network: opt1
+      type: pass
+    - descr: Allow state synchronisation
+      destination:
+        any: ''
+      disabled: false
+      floating: false
+      interface: opt1
+      ipprotocol: inet
+      log: false
+      protocol: pfsync
+      source:
+        network: opt1
+      type: pass
+    - descr: Allow ICMP for diagnostics
+      destination:
+        network: opt1
+      disabled: false
+      floating: false
+      interface: opt1
+      ipprotocol: inet
+      log: false
+      protocol: icmp
+      source:
+        network: opt1
+      type: pass
+    - descr: Allow DHCP Sync
+      destination:
+        network: opt1
+        port: 8765-8766
+      disabled: false
+      floating: false
+      interface: opt1
+      ipprotocol: inet46
+      log: false
+      protocol: tcp
+      source:
+        network: opt1
+      type: pass
+    - descr: Allow ping for testing, should disable before CON starts
+      destination:
+        network: (self)
+      disabled: false
+      floating: false
+      interface: opt3
+      ipprotocol: inet
+      log: false
+      protocol: tcp
+      source:
+        address: 172.19.128.3
+      type: pass
+    - descr: Block access to PEP
+      destination:
+        address: 172.19.0.0/24
+      disabled: false
+      floating: false
+      interface: opt3
+      ipprotocol: inet
+      log: false
+      protocol: tcp
+      source:
+        address: 172.19.128.0/17
+      type: block
+    - descr: ''
+      destination:
+        network: (self)
+      disabled: false
+      floating: false
+      interface: opt4
+      ipprotocol: inet
+      log: false
+      protocol: tcp
+      source:
+        any: ''
+      type: pass
+    - descr: ''
+      destination:
+        any: ''
+      disabled: false
+      floating: false
+      interface: opt10
+      ipprotocol: inet
+      log: true
+      protocol: tcp
+      source:
+        any: ''
+      type: pass
+
+  carp:
+    - advbase: '1'
+      advskew: '0'
+      descr: 'Ext IP for VIP '
+      interface: wan
+      subnet: 172.19.0.10
+      subnet_bits: '32'
+      vhid: '1'
+    - advbase: '1'
+      advskew: '0'
+      descr: Internal VIP
+      interface: lan
+      subnet: 172.19.1.1
+      subnet_bits: '24'
+      vhid: '2'
+    - advbase: '1'
+      advskew: '0'
+      descr: Open WIFI VIP
+      interface: opt3
+      subnet: 172.19.128.1
+      subnet_bits: '18'
+      vhid: '228'
+    - advbase: '1'
+      advskew: '0'
+      descr: Admin Netw VIP
+      interface: opt4
+      subnet: 172.19.5.1
+      subnet_bits: '24'
+      vhid: '105'
+    - advbase: '1'
+      advskew: '0'
+      descr: WPA VIP
+      interface: opt12
+      subnet: 172.19.192.1
+      subnet_bits: '18'
+      vhid: '229'
+    - advbase: '1'
+      advskew: '0'
+      descr: INTSVC VIP
+      interface: opt6
+      subnet: 172.19.2.1
+      subnet_bits: '24'
+      vhid: '102'
+    - advbase: '1'
+      advskew: '0'
+      descr: PUBSVC VIP
+      interface: opt5
+      subnet: 172.19.3.1
+      subnet_bits: '24'
+      vhid: '103'
+    - advbase: '1'
+      advskew: '0'
+      descr: WIFI Admin VIP
+      interface: opt13
+      subnet: 172.19.4.1
+      subnet_bits: '24'
+      vhid: '104'
+    - advbase: '1'
+      advskew: '0'
+      descr: Jump the Wall VIP
+      interface: opt7
+      subnet: 172.19.16.1
+      subnet_bits: '24'
+      vhid: '116'
+    - advbase: '1'
+      advskew: '0'
+      descr: CFP VIP
+      interface: opt8
+      subnet: 172.19.17.1
+      subnet_bits: '24'
+      vhid: '117'
+    - advbase: '1'
+      advskew: '0'
+      descr: Junkyard VIP
+      interface: opt9
+      subnet: 172.19.18.1
+      subnet_bits: '24'
+      vhid: '118'
+    - advbase: '1'
+      advskew: '0'
+      descr: Speaker VIP
+      interface: opt10
+      subnet: 172.19.19.1
+      subnet_bits: '24'
+      vhid: '119'
+    - advbase: '1'
+      advskew: '0'
+      descr: Registration VIP
+      interface: opt11
+      subnet: 172.19.20.1
+      subnet_bits: '24'
+      vhid: '120'
+    - advbase: '1'
+      advskew: '0'
+      descr: Village of Villages VIP
+      interface: opt14
+      subnet: 172.19.21.1
+      subnet_bits: '24'
+      vhid: '121'
+
+  hasync:
+    pfsyncenabled: true
+    pfsyncinterface: opt1
+    pfsyncpeerip: 172.19.15.3
+    synchronizetoip: 172.19.15.3
+    username: admin
