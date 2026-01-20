@@ -1,0 +1,88 @@
+---
+# Sync WAX210 WAP Configuration
+# Applies golden configuration from wap-pod1 to all other WAX210 WAPs
+#
+# Usage:
+#   Sync all WAX210 WAPs:
+#     ansible-playbook playbooks/sync_wax210_waps.yml
+#
+#   Sync specific WAP:
+#     ansible-playbook playbooks/sync_wax210_waps.yml --limit wap-pod2
+#
+#   Dry run (check mode):
+#     ansible-playbook playbooks/sync_wax210_waps.yml --check
+
+- name: Sync WAX210 WAP Configuration from Golden Reference
+  hosts: wax210:!wap_golden_configs
+  gather_facts: false
+  vars:
+    golden_wap: wap-pod1
+
+  tasks:
+    - name: Display sync target info
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Syncing {{ inventory_hostname }} from {{ golden_wap }}
+          ═══════════════════════════════════════════════════════════
+
+    # System configuration (AP name will be customized per-device)
+    - name: Configure system settings
+      sandinak.netgear_wap.netgear_wax210_system:
+        host: "{{ ansible_host }}"
+        password: "{{ wap_password }}"
+        ap_name: "{{ inventory_hostname | upper | replace('-', '') }}"
+        mgmt_interface_2g: "{{ wap_system.mgmt_interface_2g | default(false) }}"
+        mgmt_interface_5g: "{{ wap_system.mgmt_interface_5g | default(false) }}"
+      delegate_to: localhost
+      when: wap_system is defined
+      register: system_result
+      tags:
+        - system
+
+    # Radio configuration
+    - name: Configure radio settings
+      sandinak.netgear_wap.netgear_wax210_radio:
+        host: "{{ ansible_host }}"
+        password: "{{ wap_password }}"
+        channel_2g: "{{ wap_radio.channel_2g | default('auto') }}"
+        channel_5g: "{{ wap_radio.channel_5g | default(omit) }}"
+      delegate_to: localhost
+      when: wap_radio is defined
+      register: radio_result
+      tags:
+        - radio
+
+    # SSID configuration
+    - name: Configure SSIDs
+      sandinak.netgear_wap.netgear_wax210_wireless:
+        host: "{{ ansible_host }}"
+        password: "{{ wap_password }}"
+        ssid_name: "{{ item.name }}"
+        state: "{{ 'enabled' if item.enabled | default(true) else 'disabled' }}"
+        encryption: "{{ item.encryption | default(omit) }}"
+        passphrase: "{{ lookup('vars', 'wap_ssid_' ~ (item.name | lower | regex_replace('[^a-z0-9]', '_')) ~ '_passphrase', default=omit) }}"
+        vlan: "{{ item.vlan | default(omit) }}"
+        isolation: "{{ item.isolation | default(omit) }}"
+        hidden: "{{ item.hidden | default(omit) }}"
+        band_steering: "{{ item.band_steering | default(omit) }}"
+        radio: "{{ item.radio | default('both') }}"
+      delegate_to: localhost
+      loop: "{{ wap_ssids | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: ssid_result
+      tags:
+        - ssids
+        - wireless
+
+    - name: Display sync results
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Sync Complete: {{ inventory_hostname }}
+          ═══════════════════════════════════════════════════════════
+          System: {{ 'Changed' if system_result.changed | default(false) else 'OK' }}
+          Radio:  {{ 'Changed' if radio_result.changed | default(false) else 'OK' }}
+          SSIDs:  {{ ssid_result.results | default([]) | selectattr('changed', 'defined') | selectattr('changed') | list | length }} changed
+

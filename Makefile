@@ -38,8 +38,8 @@ install-zyxel-collection: deps
 	@echo "Installing network.zyxel collection from local repository..."
 	@if [ -d "../ansible-zyxel" ]; then \
 		cd ../ansible-zyxel && \
-		$(ANSIBLE_GALAXY) collection build --force && \
-		$(ANSIBLE_GALAXY) collection install network-zyxel-*.tar.gz --force; \
+		$(CURDIR)/$(ANSIBLE_GALAXY) collection build --force && \
+		$(CURDIR)/$(ANSIBLE_GALAXY) collection install network-zyxel-*.tar.gz --force; \
 	else \
 		echo "ERROR: ansible-zyxel repository not found at ../ansible-zyxel"; \
 		echo "Clone it with: git clone git@github.com:sandinak/ansible-zyxel.git ../ansible-zyxel"; \
@@ -51,8 +51,8 @@ install-wap-collection: deps
 	@echo "Installing sandinak.netgear_wap collection from local repository..."
 	@if [ -d "../ansible-netgear-wap" ]; then \
 		cd ../ansible-netgear-wap && \
-		$(ANSIBLE_GALAXY) collection build --force && \
-		$(ANSIBLE_GALAXY) collection install sandinak-netgear_wap-*.tar.gz --force; \
+		$(CURDIR)/$(ANSIBLE_GALAXY) collection build --force && \
+		$(CURDIR)/$(ANSIBLE_GALAXY) collection install sandinak-netgear_wap-*.tar.gz --force; \
 	else \
 		echo "ERROR: ansible-netgear-wap repository not found at ../ansible-netgear-wap"; \
 		echo "Clone it with: git clone git@github.com:sandinak/ansible-netgear-wap.git ../ansible-netgear-wap"; \
