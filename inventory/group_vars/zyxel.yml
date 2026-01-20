@@ -1,4 +1,7 @@
 # Zyxel Switch Group Variables
+# References authoritative sources:
+#   - disconet.* from all.yml (domain, DNS, NTP, syslog)
+#   - vlans from networks.yml
 ---
 # Zyxel credentials are stored in group_vars/zyxel/vault.yml (encrypted)
 # and referenced in group_vars/zyxel/vars.yml

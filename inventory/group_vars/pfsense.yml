@@ -1,19 +1,20 @@
 # pfSense Group Variables
+# References authoritative sources:
+#   - disconet.* from all.yml (domain, DNS, NTP, syslog)
+#   - vlans from networks.yml
 ---
-# pfSense API credentials (use ansible-vault in production)
+# pfSense credentials (use admin_password from vault via all.yml)
 pfsense_user: admin
-# pfsense_password: !vault |
-#   $ANSIBLE_VAULT;1.1;AES256
-#   ...
 
 # Default pfSense configuration
 pfsense_config:
-  # System settings
+  # System settings (from disconet in all.yml)
   system:
     hostname: "{{ inventory_hostname_short }}"
     domain: "{{ disconet.domain }}"
     dns_servers: "{{ disconet.dns_servers }}"
-    timezone: America/Los_Angeles
+    ntp_servers: "{{ disconet.ntp_servers }}"
+    timezone: Etc/GMT+5
 
   # Interface defaults
   interfaces:

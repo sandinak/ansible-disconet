@@ -1,6 +1,9 @@
 # Common VLANs - From DistrictCon Network Spreadsheet
-# Domain: disconet.work
-# Routed Network: 172.19.0.0/16
+# Authoritative source for all VLAN definitions
+#
+# Domain and routed network are defined in all.yml:
+#   disconet.domain: {{ disconet.domain | default('disconet.work') }}
+#   disconet.routed_network: {{ disconet.routed_network | default('172.19.0.0/16') }}
 
 vlans:
   # CORE Networks
@@ -102,6 +105,15 @@ vlans:
     subnet: 172.19.20.0/24
     owner: ""
     use_case: Registration
+    sw_notes: ""
+    notes: ""
+
+  vov:
+    id: 121
+    name: VOV
+    subnet: 172.19.21.0/24
+    owner: ""
+    use_case: Village of Villages
     sw_notes: ""
     notes: ""
 

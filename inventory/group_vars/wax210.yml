@@ -3,8 +3,11 @@
 # Pull date: 20260119-203038
 # Target group: wax210
 #
+# References authoritative sources:
+#   - vlans from networks.yml (VLAN IDs for SSIDs)
+#   - ssid_*_passphrase from all.yml (vault references)
+#
 # Cleaned to only include active SSIDs
-# Passphrases stored in vault as wap_ssid_<name>_passphrase
 ---
 
 # Metadata about this golden config
@@ -25,11 +28,12 @@ wap_radio:
   channel_5g: "36"
 
 # Active SSID configurations (enabled only)
+# VLAN IDs sourced from networks.yml (authoritative source)
 # Each SSID configured on both 2.4GHz and 5GHz unless specified
 wap_ssids:
   - name: "JTW"
     encryption: "sae-mixed+ccmp"
-    vlan: "vlan116"
+    vlan: "vlan{{ vlans.jtw.id }}"
     isolation: true
     hidden: false
     radio: "both"
@@ -38,7 +42,7 @@ wap_ssids:
 
   - name: "VOV"
     encryption: "psk2"
-    vlan: "vlan121"
+    vlan: "vlan{{ vlans.vov.id }}"
     isolation: true
     hidden: false
     radio: "both"
@@ -47,7 +51,7 @@ wap_ssids:
 
   - name: "SPEAKER"
     encryption: "sae-mixed+ccmp"
-    vlan: "vlan119"
+    vlan: "vlan{{ vlans.speaker.id }}"
     isolation: true
     hidden: false
     radio: "both"
