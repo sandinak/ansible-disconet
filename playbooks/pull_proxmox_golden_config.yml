@@ -1,0 +1,85 @@
+---
+# Pull Golden Configuration from Proxmox
+# Captures node, network, storage, and VM configuration
+#
+# Usage:
+#   ansible-playbook playbooks/pull_proxmox_golden_config.yml
+
+- name: Pull Golden Configuration from Proxmox
+  hosts: proxmox
+  gather_facts: false
+  vars:
+    output_file: "{{ playbook_dir }}/../inventory/group_vars/proxmox_golden.yml"
+
+  tasks:
+    - name: Get node information
+      community.proxmox.proxmox_node_info:
+        api_host: "{{ ansible_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_password: "{{ admin_password }}"
+        validate_certs: false
+      register: node_info
+      delegate_to: localhost
+
+    - name: Get network configuration
+      community.proxmox.proxmox_node_network_info:
+        api_host: "{{ ansible_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_password: "{{ admin_password }}"
+        validate_certs: false
+        node: "{{ inventory_hostname_short }}"
+      register: network_info
+      delegate_to: localhost
+
+    - name: Get storage configuration
+      community.proxmox.proxmox_storage_info:
+        api_host: "{{ ansible_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_password: "{{ admin_password }}"
+        validate_certs: false
+      register: storage_info
+      delegate_to: localhost
+
+    - name: Get VM list
+      community.proxmox.proxmox_vm_info:
+        api_host: "{{ ansible_host }}"
+        api_user: "{{ proxmox_api_user }}"
+        api_password: "{{ admin_password }}"
+        validate_certs: false
+        node: "{{ inventory_hostname_short }}"
+      register: vm_info
+      delegate_to: localhost
+
+    - name: Display configuration summary
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Proxmox Golden Config from {{ inventory_hostname }}
+          ═══════════════════════════════════════════════════════════
+          Nodes: {{ node_info.proxmox_nodes | length }}
+          Networks: {{ network_info.proxmox_networks | default([]) | length }}
+          Storage: {{ storage_info.proxmox_storages | default([]) | length }}
+          VMs: {{ vm_info.proxmox_vms | default([]) | length }}
+
+    - name: Build golden config
+      ansible.builtin.set_fact:
+        proxmox_golden_config:
+          _meta:
+            source: "{{ inventory_hostname }}"
+            pulled_at: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+          nodes: "{{ node_info.proxmox_nodes }}"
+          networks: "{{ network_info.proxmox_networks | default([]) }}"
+          storage: "{{ storage_info.proxmox_storages | default([]) }}"
+          vms: "{{ vm_info.proxmox_vms | default([]) | map(attribute='name') | list }}"
+
+    - name: Write golden config
+      ansible.builtin.copy:
+        content: |
+          # Proxmox Golden Configuration
+          # Pulled from: {{ inventory_hostname }}
+          # Pull date: {{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}
+          ---
+          {{ proxmox_golden_config | to_nice_yaml(indent=2) }}
+        dest: "{{ output_file }}"
+      delegate_to: localhost
+

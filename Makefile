@@ -140,6 +140,26 @@ sync-waps: deps collections install-wap-collection
 	@echo "Syncing WAX210 WAP configurations from wap-pod1..."
 	$(ANSIBLE_PLAYBOOK) playbooks/sync_wax210_waps.yml
 
+# Pull golden configurations from reference devices
+pull-golden-switch: deps collections
+	@echo "Pulling golden configs from reference switches..."
+	$(ANSIBLE_PLAYBOOK) playbooks/pull_golden_config.yml -l switch_golden_configs
+
+pull-golden-wap: deps collections install-wap-collection
+	@echo "Pulling golden config from reference WAP (wap-pod1)..."
+	$(ANSIBLE_PLAYBOOK) playbooks/pull_wap_golden_config.yml -l wap_golden_configs
+
+pull-golden-pfsense: deps collections
+	@echo "Pulling golden config from reference pfSense (pfsense1)..."
+	$(ANSIBLE_PLAYBOOK) playbooks/pull_pfsense_golden_config.yml -l pfsense_golden_configs
+
+pull-golden-proxmox: deps collections
+	@echo "Pulling golden config from Proxmox..."
+	$(ANSIBLE_PLAYBOOK) playbooks/pull_proxmox_golden_config.yml
+
+pull-golden-all: pull-golden-switch pull-golden-wap pull-golden-pfsense
+	@echo "All golden configs pulled."
+
 # Clean up
 clean:
 	@echo "Cleaning up..."
@@ -188,6 +208,13 @@ help:
 	@echo ""
 	@echo "WAP Sync targets:"
 	@echo "  sync-waps    - Sync WAX210 WAPs from wap-pod1 (reference)"
+	@echo ""
+	@echo "Golden Config Pull targets:"
+	@echo "  pull-golden-switch   - Pull golden configs from reference switches"
+	@echo "  pull-golden-wap      - Pull golden config from wap-pod1"
+	@echo "  pull-golden-pfsense  - Pull golden config from pfsense1"
+	@echo "  pull-golden-proxmox  - Pull golden config from Proxmox"
+	@echo "  pull-golden-all      - Pull all golden configs"
 	@echo ""
 	@echo "Template targets:"
 	@echo "  idf-deploy   - Deploy IDF switch template to all IDF switches"

@@ -1,0 +1,192 @@
+# pfSense Golden Configuration
+# Pulled from: pfsense1.disconet.work
+# Pull date: 20260119-210051
+---
+pfsense_golden_config:
+  _meta:
+    source: "pfsense1.disconet.work"
+    pulled_at: "20260119-210051"
+
+  system:
+    dns_servers:
+    - 1.1.1.1
+    - 8.8.8.8
+    domain: disconet.work
+    hostname: pfsense1
+    timezone: Etc/GMT+5
+
+  interfaces:
+    lan:
+      descr: LAN
+      enable: true
+      if: igc0
+      ipaddr: 172.19.1.252
+      subnet: '24'
+    opt1:
+      descr: FO
+      enable: true
+      if: igc1
+      ipaddr: 172.19.15.2
+      subnet: '29'
+    opt10:
+      descr: SPEAKER
+      enable: true
+      if: igc0.119
+      ipaddr: 172.19.19.2
+      subnet: '24'
+    opt11:
+      descr: REG
+      enable: true
+      if: igc0.120
+      ipaddr: 172.19.20.2
+      subnet: '24'
+    opt12:
+      descr: WPA
+      enable: true
+      if: igc0.292
+      ipaddr: 172.19.192.2
+      subnet: '18'
+    opt13:
+      descr: WIFIADMIN
+      enable: true
+      if: igc0.104
+      ipaddr: 172.19.4.2
+      subnet: '24'
+    opt14:
+      descr: VOV
+      enable: true
+      if: igc0.121
+      ipaddr: 172.19.21.2
+      subnet: '24'
+    opt15:
+      descr: SHMOOADMIN
+      enable: true
+      if: igc0.500
+      ipaddr: 172.16.0.1
+      subnet: '24'
+    opt2:
+      descr: OPT2
+      enable: false
+      if: igc2
+      ipaddr: ''
+      subnet: ''
+    opt3:
+      descr: OPEN
+      enable: true
+      if: igc0.228
+      ipaddr: 172.19.128.2
+      subnet: '18'
+    opt4:
+      descr: ADMIN
+      enable: true
+      if: igc0.105
+      ipaddr: 172.19.5.2
+      subnet: '24'
+    opt5:
+      descr: PUB
+      enable: true
+      if: igc0.103
+      ipaddr: 172.19.3.2
+      subnet: '24'
+    opt6:
+      descr: INT
+      enable: true
+      if: igc0.102
+      ipaddr: 172.19.2.2
+      subnet: '24'
+    opt7:
+      descr: JTW
+      enable: true
+      if: igc0.116
+      ipaddr: 172.19.16.2
+      subnet: '24'
+    opt8:
+      descr: CFP
+      enable: true
+      if: igc0.117
+      ipaddr: 172.19.17.2
+      subnet: '24'
+    opt9:
+      descr: JUNK
+      enable: true
+      if: igc0.118
+      ipaddr: 172.19.18.2
+      subnet: '24'
+    wan:
+      descr: WAN
+      enable: true
+      if: igc3
+      ipaddr: dhcp
+      subnet: ''
+
+  vlans:
+    - descr: INT
+      if: igc0
+      pcp: ''
+      tag: '102'
+      vlanif: igc0.102
+    - descr: PUB
+      if: igc0
+      pcp: ''
+      tag: '103'
+      vlanif: igc0.103
+    - descr: JTW
+      if: igc0
+      pcp: ''
+      tag: '116'
+      vlanif: igc0.116
+    - descr: CFP
+      if: igc0
+      pcp: ''
+      tag: '117'
+      vlanif: igc0.117
+    - descr: JUNK
+      if: igc0
+      pcp: ''
+      tag: '118'
+      vlanif: igc0.118
+    - descr: SPEAKER
+      if: igc0
+      pcp: ''
+      tag: '119'
+      vlanif: igc0.119
+    - descr: REG
+      if: igc0
+      pcp: ''
+      tag: '120'
+      vlanif: igc0.120
+    - descr: OPEN
+      if: igc0
+      pcp: ''
+      tag: '228'
+      vlanif: igc0.228
+    - descr: WPA
+      if: igc0
+      pcp: ''
+      tag: '292'
+      vlanif: igc0.292
+    - descr: WIFIADMIN
+      if: igc0
+      pcp: ''
+      tag: '104'
+      vlanif: igc0.104
+    - descr: ADMIN
+      if: igc0
+      pcp: ''
+      tag: '105'
+      vlanif: igc0.105
+    - descr: VOV
+      if: igc0
+      pcp: ''
+      tag: '121'
+      vlanif: igc0.121
+    - descr: SHMOOADMIN
+      if: igc0
+      pcp: ''
+      tag: '500'
+      vlanif: igc0.500
+
+  aliases:
+    []
+
+  dhcp_interfaces: ['lan', 'opt13', 'opt3', 'opt4', 'opt5', 'opt7', 'opt8', 'opt9', 'opt10', 'opt11', 'opt14', 'opt6', 'opt12', 'opt15']

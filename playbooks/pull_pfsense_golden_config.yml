@@ -1,0 +1,113 @@
+---
+# Pull Golden Configuration from pfSense
+# Extracts key configuration sections via PHP shell
+#
+# Usage:
+#   ansible-playbook playbooks/pull_pfsense_golden_config.yml -l pfsense1.disconet.work
+
+- name: Pull Golden Configuration from pfSense
+  hosts: pfsense
+  gather_facts: false
+  vars:
+    output_file: "{{ playbook_dir }}/../inventory/group_vars/pfsense_golden.yml"
+
+  tasks:
+    - name: Get system configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          echo json_encode(array(
+            'hostname' => $config['system']['hostname'],
+            'domain' => $config['system']['domain'],
+            'timezone' => $config['system']['timezone'],
+            'dns_servers' => isset($config['system']['dnsserver']) ? $config['system']['dnsserver'] : array()
+          ));
+      register: system_config
+      changed_when: false
+
+    - name: Get interface configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $ifaces = array();
+          foreach ($config['interfaces'] as $name => $iface) {
+            $ifaces[$name] = array(
+              'enable' => isset($iface['enable']),
+              'descr' => isset($iface['descr']) ? $iface['descr'] : $name,
+              'if' => isset($iface['if']) ? $iface['if'] : '',
+              'ipaddr' => isset($iface['ipaddr']) ? $iface['ipaddr'] : '',
+              'subnet' => isset($iface['subnet']) ? $iface['subnet'] : ''
+            );
+          }
+          echo json_encode($ifaces);
+      register: interface_config
+      changed_when: false
+
+    - name: Get VLAN configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          echo json_encode(isset($config['vlans']['vlan']) ? $config['vlans']['vlan'] : array());
+      register: vlan_config
+      changed_when: false
+
+    - name: Get alias configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          echo json_encode(isset($config['aliases']['alias']) ? $config['aliases']['alias'] : array());
+      register: alias_config
+      changed_when: false
+
+    - name: Get DHCP server configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          echo json_encode(isset($config['dhcpd']) ? array_keys($config['dhcpd']) : array());
+      register: dhcp_config
+      changed_when: false
+
+    - name: Parse configurations
+      ansible.builtin.set_fact:
+        pfsense_system: "{{ system_config.stdout_lines[-1] | from_json }}"
+        pfsense_interfaces: "{{ interface_config.stdout_lines[-1] | from_json }}"
+        pfsense_vlans: "{{ vlan_config.stdout_lines[-1] | from_json }}"
+        pfsense_aliases: "{{ alias_config.stdout_lines[-1] | from_json }}"
+        pfsense_dhcp_interfaces: "{{ dhcp_config.stdout_lines[-1] | from_json }}"
+
+    - name: Display configuration summary
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          pfSense Golden Config from {{ inventory_hostname }}
+          ═══════════════════════════════════════════════════════════
+          System: {{ pfsense_system.hostname }}.{{ pfsense_system.domain }}
+          Interfaces: {{ pfsense_interfaces | length }}
+          VLANs: {{ pfsense_vlans | length }}
+          Aliases: {{ pfsense_aliases | length }}
+          DHCP on: {{ pfsense_dhcp_interfaces | join(', ') }}
+
+    - name: Write golden config
+      ansible.builtin.copy:
+        content: |
+          # pfSense Golden Configuration
+          # Pulled from: {{ inventory_hostname }}
+          # Pull date: {{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}
+          ---
+          pfsense_golden_config:
+            _meta:
+              source: "{{ inventory_hostname }}"
+              pulled_at: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+            system:
+          {{ pfsense_system | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            interfaces:
+          {{ pfsense_interfaces | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            vlans:
+          {{ pfsense_vlans | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            aliases:
+          {{ pfsense_aliases | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            dhcp_interfaces: {{ pfsense_dhcp_interfaces }}
+        dest: "{{ output_file }}"
+      delegate_to: localhost
+
