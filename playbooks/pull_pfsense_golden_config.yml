@@ -173,6 +173,177 @@
       register: hasync_config
       changed_when: false
 
+    - name: Get NAT port forwards
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $nat = array();
+          if (isset($config['nat']['rule'])) {
+            foreach ($config['nat']['rule'] as $rule) {
+              $nat[] = array(
+                'interface' => isset($rule['interface']) ? $rule['interface'] : '',
+                'protocol' => isset($rule['protocol']) ? $rule['protocol'] : '',
+                'source' => isset($rule['source']) ? $rule['source'] : array(),
+                'destination' => isset($rule['destination']) ? $rule['destination'] : array(),
+                'target' => isset($rule['target']) ? $rule['target'] : '',
+                'local-port' => isset($rule['local-port']) ? $rule['local-port'] : '',
+                'descr' => isset($rule['descr']) ? $rule['descr'] : '',
+                'disabled' => isset($rule['disabled']),
+                'nordr' => isset($rule['nordr'])
+              );
+            }
+          }
+          echo json_encode($nat);
+      register: nat_portforward_config
+      changed_when: false
+
+    - name: Get NAT outbound rules
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $outbound = array(
+            'mode' => isset($config['nat']['outbound']['mode']) ? $config['nat']['outbound']['mode'] : 'automatic',
+            'rules' => array()
+          );
+          if (isset($config['nat']['outbound']['rule'])) {
+            foreach ($config['nat']['outbound']['rule'] as $rule) {
+              $outbound['rules'][] = array(
+                'interface' => isset($rule['interface']) ? $rule['interface'] : '',
+                'source' => isset($rule['source']) ? $rule['source'] : array(),
+                'destination' => isset($rule['destination']) ? $rule['destination'] : array(),
+                'dstport' => isset($rule['dstport']) ? $rule['dstport'] : '',
+                'target' => isset($rule['target']) ? $rule['target'] : '',
+                'targetip' => isset($rule['targetip']) ? $rule['targetip'] : '',
+                'poolopts' => isset($rule['poolopts']) ? $rule['poolopts'] : '',
+                'descr' => isset($rule['descr']) ? $rule['descr'] : '',
+                'disabled' => isset($rule['disabled']),
+                'nonat' => isset($rule['nonat'])
+              );
+            }
+          }
+          echo json_encode($outbound);
+      register: nat_outbound_config
+      changed_when: false
+
+    - name: Get NAT 1:1 rules
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $onetoone = array();
+          if (isset($config['nat']['onetoone'])) {
+            foreach ($config['nat']['onetoone'] as $rule) {
+              $onetoone[] = array(
+                'interface' => isset($rule['interface']) ? $rule['interface'] : '',
+                'external' => isset($rule['external']) ? $rule['external'] : '',
+                'source' => isset($rule['source']) ? $rule['source'] : array(),
+                'destination' => isset($rule['destination']) ? $rule['destination'] : array(),
+                'descr' => isset($rule['descr']) ? $rule['descr'] : '',
+                'disabled' => isset($rule['disabled'])
+              );
+            }
+          }
+          echo json_encode($onetoone);
+      register: nat_onetoone_config
+      changed_when: false
+
+    - name: Get gateways
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $gateways = array();
+          if (isset($config['gateways']['gateway_item'])) {
+            foreach ($config['gateways']['gateway_item'] as $gw) {
+              $gateways[] = array(
+                'name' => isset($gw['name']) ? $gw['name'] : '',
+                'interface' => isset($gw['interface']) ? $gw['interface'] : '',
+                'gateway' => isset($gw['gateway']) ? $gw['gateway'] : '',
+                'monitor' => isset($gw['monitor']) ? $gw['monitor'] : '',
+                'weight' => isset($gw['weight']) ? $gw['weight'] : '1',
+                'descr' => isset($gw['descr']) ? $gw['descr'] : '',
+                'defaultgw' => isset($gw['defaultgw']),
+                'disabled' => isset($gw['disabled'])
+              );
+            }
+          }
+          echo json_encode($gateways);
+      register: gateways_config
+      changed_when: false
+
+    - name: Get static routes
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $routes = array();
+          if (isset($config['staticroutes']['route'])) {
+            foreach ($config['staticroutes']['route'] as $route) {
+              $routes[] = array(
+                'network' => isset($route['network']) ? $route['network'] : '',
+                'gateway' => isset($route['gateway']) ? $route['gateway'] : '',
+                'descr' => isset($route['descr']) ? $route['descr'] : '',
+                'disabled' => isset($route['disabled'])
+              );
+            }
+          }
+          echo json_encode($routes);
+      register: staticroutes_config
+      changed_when: false
+
+    - name: Get DNS resolver (Unbound) configuration
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $dns = array();
+          if (isset($config['unbound'])) {
+            $dns = array(
+              'enable' => isset($config['unbound']['enable']),
+              'dnssec' => isset($config['unbound']['dnssec']),
+              'port' => isset($config['unbound']['port']) ? $config['unbound']['port'] : '53',
+              'active_interface' => isset($config['unbound']['active_interface']) ? $config['unbound']['active_interface'] : '',
+              'outgoing_interface' => isset($config['unbound']['outgoing_interface']) ? $config['unbound']['outgoing_interface'] : '',
+              'system_domain_local_zone_type' => isset($config['unbound']['system_domain_local_zone_type']) ? $config['unbound']['system_domain_local_zone_type'] : ''
+            );
+          }
+          echo json_encode($dns);
+      register: dnsresolver_config
+      changed_when: false
+
+    - name: Get DNS resolver host overrides
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $hosts = array();
+          if (isset($config['unbound']['hosts'])) {
+            foreach ($config['unbound']['hosts'] as $host) {
+              $hosts[] = array(
+                'host' => isset($host['host']) ? $host['host'] : '',
+                'domain' => isset($host['domain']) ? $host['domain'] : '',
+                'ip' => isset($host['ip']) ? $host['ip'] : '',
+                'descr' => isset($host['descr']) ? $host['descr'] : ''
+              );
+            }
+          }
+          echo json_encode($hosts);
+      register: dns_hostoverrides_config
+      changed_when: false
+
+    - name: Get DNS resolver domain overrides
+      pfsensible.core.pfsense_phpshell:
+        cmd: |
+          global $config;
+          $domains = array();
+          if (isset($config['unbound']['domainoverrides'])) {
+            foreach ($config['unbound']['domainoverrides'] as $dom) {
+              $domains[] = array(
+                'domain' => isset($dom['domain']) ? $dom['domain'] : '',
+                'ip' => isset($dom['ip']) ? $dom['ip'] : '',
+                'descr' => isset($dom['descr']) ? $dom['descr'] : ''
+              );
+            }
+          }
+          echo json_encode($domains);
+      register: dns_domainoverrides_config
+      changed_when: false
+
     - name: Parse configurations
       ansible.builtin.set_fact:
         pfsense_system: "{{ system_config.stdout_lines[-1] | from_json }}"
@@ -184,6 +355,14 @@
         pfsense_firewall_rules: "{{ firewall_rules_config.stdout_lines[-1] | from_json }}"
         pfsense_carp: "{{ carp_config.stdout_lines[-1] | from_json }}"
         pfsense_hasync: "{{ hasync_config.stdout_lines[-1] | from_json }}"
+        pfsense_nat_portforward: "{{ nat_portforward_config.stdout_lines[-1] | from_json }}"
+        pfsense_nat_outbound: "{{ nat_outbound_config.stdout_lines[-1] | from_json }}"
+        pfsense_nat_onetoone: "{{ nat_onetoone_config.stdout_lines[-1] | from_json }}"
+        pfsense_gateways: "{{ gateways_config.stdout_lines[-1] | from_json }}"
+        pfsense_staticroutes: "{{ staticroutes_config.stdout_lines[-1] | from_json }}"
+        pfsense_dnsresolver: "{{ dnsresolver_config.stdout_lines[-1] | from_json }}"
+        pfsense_dns_hostoverrides: "{{ dns_hostoverrides_config.stdout_lines[-1] | from_json }}"
+        pfsense_dns_domainoverrides: "{{ dns_domainoverrides_config.stdout_lines[-1] | from_json }}"
 
     - name: Display configuration summary
       ansible.builtin.debug:
@@ -200,6 +379,13 @@
           Firewall Rules: {{ pfsense_firewall_rules | length }}
           CARP VIPs: {{ pfsense_carp | length }}
           HA Sync: {{ 'Enabled' if pfsense_hasync.pfsyncenabled | default(false) else 'Disabled' }}
+          NAT Port Forwards: {{ pfsense_nat_portforward | length }}
+          NAT Outbound Mode: {{ pfsense_nat_outbound.mode }} ({{ pfsense_nat_outbound.rules | length }} rules)
+          NAT 1:1: {{ pfsense_nat_onetoone | length }}
+          Gateways: {{ pfsense_gateways | length }}
+          Static Routes: {{ pfsense_staticroutes | length }}
+          DNS Host Overrides: {{ pfsense_dns_hostoverrides | length }}
+          DNS Domain Overrides: {{ pfsense_dns_domainoverrides | length }}
 
     - name: Write golden config
       ansible.builtin.copy:
@@ -231,6 +417,22 @@
           {{ pfsense_carp | to_nice_yaml(indent=2) | indent(4, first=true) }}
             hasync:
           {{ pfsense_hasync | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            nat_port_forwards:
+          {{ pfsense_nat_portforward | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            nat_outbound:
+          {{ pfsense_nat_outbound | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            nat_onetoone:
+          {{ pfsense_nat_onetoone | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            gateways:
+          {{ pfsense_gateways | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            static_routes:
+          {{ pfsense_staticroutes | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            dns_resolver:
+          {{ pfsense_dnsresolver | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            dns_host_overrides:
+          {{ pfsense_dns_hostoverrides | to_nice_yaml(indent=2) | indent(4, first=true) }}
+            dns_domain_overrides:
+          {{ pfsense_dns_domainoverrides | to_nice_yaml(indent=2) | indent(4, first=true) }}
         dest: "{{ output_file }}"
       delegate_to: localhost
 

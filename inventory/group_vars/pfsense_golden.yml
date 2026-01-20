@@ -1,11 +1,11 @@
 # pfSense Golden Configuration
 # Pulled from: pfsense1.disconet.work
-# Pull date: 20260119-210523
+# Pull date: 20260119-211018
 ---
 pfsense_golden_config:
   _meta:
     source: "pfsense1.disconet.work"
-    pulled_at: "20260119-210523"
+    pulled_at: "20260119-211018"
 
   system:
     dns_servers:
@@ -721,3 +721,467 @@ pfsense_golden_config:
     pfsyncpeerip: 172.19.15.3
     synchronizetoip: 172.19.15.3
     username: admin
+
+  nat_port_forwards:
+    []
+
+  nat_outbound:
+    mode: hybrid
+    rules:
+    - descr: Auto created rule for ISAKMP - localhost to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 127.0.0.0/8
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - localhost to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 127.0.0.0/8
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - localhost to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: ::1/128
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - localhost to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: ::1/128
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - LAN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.1.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - LAN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.1.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - FO to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.15.0/29
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - FO to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.15.0/29
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - OPEN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.128.0/18
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - OPEN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.128.0/18
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - ADMIN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.5.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - ADMIN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.5.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - PUB to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.3.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - PUB to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.3.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - INT to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.2.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - INT to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.2.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - JTW to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.16.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - JTW to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.16.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - CFP to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.17.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - CFP to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.17.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - JUNK to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.18.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - JUNK to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.18.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - SPEAKER to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.19.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - SPEAKER to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.19.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - REG to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.20.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - REG to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.20.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - WPA to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.192.0/18
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - WPA to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.192.0/18
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - WIFIADMIN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.4.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - WIFIADMIN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.4.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - VOV to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.21.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - VOV to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.19.21.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule for ISAKMP - SHMOOADMIN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: '500'
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.16.0.0/24
+      target: wanip
+      targetip: ''
+    - descr: Auto created rule - SHMOOADMIN to WAN
+      destination:
+        any: ''
+      disabled: false
+      dstport: ''
+      interface: wan
+      nonat: false
+      poolopts: ''
+      source:
+        network: 172.16.0.0/24
+      target: wanip
+      targetip: ''
+
+  nat_onetoone:
+    []
+
+  gateways:
+    - defaultgw: false
+      descr: Interface WAN_DHCP6 Gateway
+      disabled: false
+      gateway: ''
+      interface: wan
+      monitor: ''
+      name: WAN_DHCP6
+      weight: '1'
+    - defaultgw: false
+      descr: Interface WAN_DHCP Gateway
+      disabled: false
+      gateway: dynamic
+      interface: wan
+      monitor: ''
+      name: WAN_DHCP
+      weight: '1'
+    - defaultgw: false
+      descr: ''
+      disabled: false
+      gateway: 172.19.1.254
+      interface: lan
+      monitor: ''
+      name: SandHome
+      weight: '1'
+
+  static_routes:
+    - descr: Route to sandstuff
+      disabled: false
+      gateway: SandHome
+      network: 192.168.0.0/16
+
+  dns_resolver:
+    active_interface: all
+    dnssec: true
+    enable: true
+    outgoing_interface: wan
+    port: ''
+    system_domain_local_zone_type: transparent
+
+  dns_host_overrides:
+    []
+
+  dns_domain_overrides:
+    []
