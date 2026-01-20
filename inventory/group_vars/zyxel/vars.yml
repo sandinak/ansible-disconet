@@ -11,9 +11,9 @@ ansible_password: "{{ vault_zyxel_password }}"
 #   - network_cli: For SSH-based CLI commands (show commands, running-config)
 #   - httpapi: For HTTP API based configuration (VLANs, ports, system settings)
 #
-# Default to network_cli for CLI commands. Configuration tasks in roles
-# use httpapi modules which handle their own connection.
-ansible_connection: network_cli
+# Default to httpapi for configuration tasks (VLAN management, golden config sync).
+# Use network_cli explicitly when running CLI commands.
+ansible_connection: ansible.netcommon.httpapi
 ansible_network_os: network.zyxel.zyxel
 ansible_become: false
 ansible_become_method: enable

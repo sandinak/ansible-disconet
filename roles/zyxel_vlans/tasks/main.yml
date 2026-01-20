@@ -36,13 +36,14 @@
 # Configure VLANs from Golden Config Template
 # ============================================================
 # New format: switch_template.vlans is a dict like {"1": {"name": "default", ...}}
-# Include port membership (untagged_ports and tagged_ports) from golden config
+# Include port membership (tagged, untagged, forbidden) from golden config
 - name: Configure VLANs from golden config template
   network.zyxel.zyxel_vlan:
     vlan_id: "{{ item.key }}"
     name: "{{ item.value.name }}"
-    untagged_ports: "{{ item.value.untagged_ports | default(omit) }}"
     tagged_ports: "{{ item.value.tagged_ports | default(omit) }}"
+    untagged_ports: "{{ item.value.untagged_ports | default(omit) }}"
+    forbidden_ports: "{{ item.value.forbidden_ports | default(omit) }}"
     state: present
   loop: "{{ switch_template.vlans | default({}) | dict2items }}"
   loop_control:

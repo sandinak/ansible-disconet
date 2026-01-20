@@ -76,18 +76,7 @@
         mode: '0644'
       delegate_to: localhost
 
-    - name: Confirm sync operation
-      ansible.builtin.pause:
-        prompt: |
 
-          ⚠️  About to sync configuration to {{ inventory_hostname }}
-          This will apply the Core template config (VLANs and port settings)
-          Using group_vars/core_switches.yml template
-
-          Press ENTER to continue, or Ctrl+C then 'A' to abort
-      when:
-        - ansible_check_mode is not defined or not ansible_check_mode
-        - not (auto_approve | default(false))
 
 # ============================================================
 # PLAY 3: Apply Configuration via HTTP API (httpapi)

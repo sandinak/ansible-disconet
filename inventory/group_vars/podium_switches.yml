@@ -1,6 +1,6 @@
 # PODIUM Switch Template - Golden Configuration
 # Pulled from: sw-pod1.disconet.work
-# Pull date: 20260119-113844
+# Pull date: 20260119-170309
 # Switch model: GS1900-8HP
 # Target group: podium_switches
 #
@@ -8,14 +8,14 @@
 # Manual edits will be overwritten on next pull.
 ---
 
-# Model type for httpapi plugin (GS1900 series uses different web interface)
+# Switch model for httpapi connection
 ansible_zyxel_model: gs1900
 
 # Template variable name for this switch type
 podium_switch_template:
   _meta:
     source_switch: "sw-pod1.disconet.work"
-    pulled_at: "20260119-113844"
+    pulled_at: "20260119-170309"
     switch_model: "GS1900-8HP"
 
   # Required VLANs for this switch type
@@ -82,68 +82,91 @@ podium_switch_template:
       pvid: 104
       vlan_trunking: true
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "2":
       pvid: 119
       vlan_trunking: false
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "3":
       pvid: 119
       vlan_trunking: false
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "4":
       pvid: 119
       vlan_trunking: false
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "5":
       pvid: 104
       vlan_trunking: true
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "6":
       pvid: 104
       vlan_trunking: true
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "7":
       pvid: 1
       vlan_trunking: true
       ingress_filtering: false
-      acceptable_frame_type: "all"
     "8":
       pvid: 1
       vlan_trunking: true
       ingress_filtering: false
-      acceptable_frame_type: "all"
 
   # VLAN membership details
+  # tagged_ports = trunk ports carrying this VLAN tagged
+  # untagged_ports = access ports with this VLAN as native (PVID)
+  # forbidden_ports = ports explicitly forbidden from this VLAN
+  # excluded_ports = ports not participating (default, not tracked)
   vlans:
     "1":
       name: "default"
+      tagged_ports: []
       untagged_ports: ["7", "8"]
+      forbidden_ports: []
     "104":
       name: "WIFIADMIN0104"
+      tagged_ports: ["7", "8"]
       untagged_ports: ["1", "5", "6"]
+      forbidden_ports: ["2", "3", "4"]
     "116":
       name: "JTW0116"
+      tagged_ports: ["1", "5", "6", "7", "8"]
+      untagged_ports: []
+      forbidden_ports: ["2", "3", "4"]
     "117":
       name: "CFP0117"
+      tagged_ports: []
+      untagged_ports: []
+      forbidden_ports: ["1", "2", "3", "4", "5", "6", "7", "8"]
     "118":
       name: "JUNK0118"
+      tagged_ports: ["1", "5", "6", "7", "8"]
+      untagged_ports: []
+      forbidden_ports: ["2", "3", "4"]
     "119":
       name: "SPEAKER0119"
+      tagged_ports: ["1", "5", "6", "7", "8"]
       untagged_ports: ["2", "3", "4"]
+      forbidden_ports: []
     "120":
       name: "REG0120"
+      tagged_ports: []
+      untagged_ports: []
+      forbidden_ports: ["1", "2", "3", "4", "5", "6", "7", "8"]
     "121":
       name: "VOV0121"
+      tagged_ports: ["1", "5", "6", "7", "8"]
+      untagged_ports: []
+      forbidden_ports: ["2", "3", "4"]
     "228":
       name: "OPEN0228"
+      tagged_ports: []
+      untagged_ports: []
+      forbidden_ports: ["1", "2", "3", "4", "5", "6", "7", "8"]
     "292":
       name: "WPA0292"
+      tagged_ports: []
+      untagged_ports: []
+      forbidden_ports: ["1", "2", "3", "4", "5", "6", "7", "8"]
 
   # Management settings
   management:

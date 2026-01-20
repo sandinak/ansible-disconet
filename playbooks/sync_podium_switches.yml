@@ -41,18 +41,7 @@
           Note: GS1900 switches don't support SSH/CLI, using HTTP API only
           Template: group_vars/podium_switches.yml (from sw-pod1)
 
-    - name: Confirm sync operation
-      ansible.builtin.pause:
-        prompt: |
 
-          ⚠️  About to sync configuration to {{ inventory_hostname }}
-          This will apply the Podium template config (VLANs and port settings)
-          Using group_vars/podium_switches.yml template
-
-          Press ENTER to continue, or Ctrl+C then 'A' to abort
-      when:
-        - ansible_check_mode is not defined or not ansible_check_mode
-        - not (auto_approve | default(false))
 
 # ============================================================
 # PLAY 3: Apply Configuration via HTTP API (httpapi)
