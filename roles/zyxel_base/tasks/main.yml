@@ -1,38 +1,39 @@
 # zyxel_base role - Basic system configuration
 # Uses HTTP API modules for reliable configuration on GS1900/GS1915/GS1920
 #
-# This role configures:
+# This role uses the Base + Delta config pattern:
 #   - Hostname (from host_vars: switch_hostname)
 #   - Location (from host_vars: switch_location)
-#   - Contact (from zyxel_config or template)
-#   - NTP servers (from zyxel_config or template)
+#   - Contact (from zyxel_config)
+#   - NTP/Syslog (from *_switch_config which references disconet.*)
 #
 # Connection: Requires 'httpapi' connection (set in playbook or group_vars)
 ---
 
 # ============================================================
-# Load switch template based on group membership
+# Load switch config based on group membership
+# Uses the new *_switch_config computed variables
 # ============================================================
-- name: Set switch template (IDF switches)
+- name: Set switch config (IDF switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ idf_switch_template | default({}) }}"
+    switch_config: "{{ idf_switch_config | default({}) }}"
   when:
     - "'idf_switches' in group_names"
-    - idf_switch_template is defined
+    - idf_switch_config is defined
 
-- name: Set switch template (Core switches)
+- name: Set switch config (Core switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ core_switch_template | default({}) }}"
+    switch_config: "{{ core_switch_config | default({}) }}"
   when:
     - "'core_switches' in group_names"
-    - core_switch_template is defined
+    - core_switch_config is defined
 
-- name: Set switch template (Podium switches)
+- name: Set switch config (Podium switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ podium_switch_template | default({}) }}"
+    switch_config: "{{ podium_switch_config | default({}) }}"
   when:
     - "'podium_switches' in group_names"
-    - podium_switch_template is defined
+    - podium_switch_config is defined
 
 # ============================================================
 # Configure System Settings via HTTP API
@@ -42,8 +43,8 @@
     hostname: "{{ switch_hostname | default(inventory_hostname | regex_replace('\\..*$', '')) }}"
     location: "{{ switch_location | default(omit) }}"
     contact: "{{ zyxel_config.system.contact | default('admin@disconet.local') }}"
-    ntp_servers: "{{ zyxel_config.management.ntp.servers | default(switch_template.system.ntp_servers | default(omit)) }}"
-    timezone: "{{ zyxel_config.system.timezone | default(switch_template.system.timezone | default(omit)) }}"
+    ntp_servers: "{{ switch_config.ntp_servers | default(zyxel_config.management.ntp.servers | default(omit)) }}"
+    timezone: "{{ zyxel_config.system.timezone | default(omit) }}"
   tags: [zyxel, base, system]
 
 # ============================================================
@@ -51,11 +52,10 @@
 # ============================================================
 - name: Configure syslog server
   network.zyxel.zyxel_syslog:
-    server: "{{ zyxel_config.management.syslog.server }}"
+    server: "{{ switch_config.syslog_server | default(zyxel_config.management.syslog.server) }}"
     enabled: true
   when:
-    - zyxel_config.management.syslog.enabled | default(false)
-    - zyxel_config.management.syslog.server is defined
+    - switch_config.syslog_server is defined or (zyxel_config.management.syslog.enabled | default(false))
   tags: [zyxel, base, syslog]
   ignore_errors: true  # Module may not be fully implemented
 
@@ -70,6 +70,8 @@
       ═══════════════════════════════════════════════════════════
       Hostname: {{ switch_hostname | default(inventory_hostname | regex_replace('\\..*$', '')) }}
       Location: {{ switch_location | default('not set') }}
-      Connection: HTTP API (httpapi)
+      NTP Servers: {{ switch_config.ntp_servers | default('from zyxel_config') }}
+      Syslog: {{ switch_config.syslog_server | default('not configured') }}
+      Config Source: Base + Delta inheritance model
   tags: [zyxel, base, summary]
 

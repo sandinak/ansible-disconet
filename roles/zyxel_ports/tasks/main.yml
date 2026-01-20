@@ -1,8 +1,8 @@
 # zyxel_ports role - Configure port VLAN assignments on Zyxel switches
 # Uses HTTP API modules for reliable configuration on GS1900/GS1915/GS1920
 #
-# This role uses the golden config pattern:
-#   - Template config from group_vars (idf_switch_template, core_switch_template, etc.)
+# This role uses the Base + Delta config pattern:
+#   - Port config from *_switch_config (computed from delta)
 #   - Host-specific overrides from host_vars (port_overrides)
 #
 # Supports two formats:
@@ -13,75 +13,76 @@
 ---
 
 # ============================================================
-# Load switch template based on group membership
+# Load switch config based on group membership
+# Uses the new *_switch_config computed variables
 # ============================================================
-- name: Set switch template (IDF switches)
+- name: Set switch config (IDF switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ idf_switch_template }}"
+    switch_config: "{{ idf_switch_config }}"
   when:
     - "'idf_switches' in group_names"
-    - idf_switch_template is defined
+    - idf_switch_config is defined
 
-- name: Set switch template (Core switches)
+- name: Set switch config (Core switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ core_switch_template }}"
+    switch_config: "{{ core_switch_config }}"
   when:
     - "'core_switches' in group_names"
-    - core_switch_template is defined
+    - core_switch_config is defined
 
-- name: Set switch template (Podium switches)
+- name: Set switch config (Podium switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ podium_switch_template | default({}) }}"
+    switch_config: "{{ podium_switch_config | default({}) }}"
   when:
     - "'podium_switches' in group_names"
-    - podium_switch_template is defined
+    - podium_switch_config is defined
 
-- name: Set switch template (Special switches)
+- name: Set switch config (Special switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ special_switch_template | default({}) }}"
+    switch_config: "{{ special_switch_config | default({}) }}"
   when:
     - "'special_switches' in group_names"
-    - special_switch_template is defined
+    - special_switch_config is defined
 
 # ============================================================
 # Detect config format (new vs legacy)
 # ============================================================
 - name: Detect port config format
   ansible.builtin.set_fact:
-    use_new_format: "{{ switch_template.port_vlan_settings is defined and switch_template.port_vlan_settings | length > 0 }}"
-    use_legacy_format: "{{ switch_template.ports is defined and (switch_template.ports.ap_ports is defined or switch_template.ports.trunk_ports is defined or switch_template.ports.podium_ports is defined) }}"
-  when: switch_template is defined
+    use_new_format: "{{ switch_config.port_vlan_settings is defined and switch_config.port_vlan_settings | length > 0 }}"
+    use_legacy_format: "{{ switch_config.ports is defined and (switch_config.ports.ap_ports is defined or switch_config.ports.trunk_ports is defined or switch_config.ports.podium_ports is defined) }}"
+  when: switch_config is defined
 
 # ============================================================
-# Apply Port VLAN Settings from Golden Config (NEW FORMAT)
+# Apply Port VLAN Settings from Config (NEW FORMAT)
 # ============================================================
 # New format: port_vlan_settings is a dict with numeric port keys
 # Uses bulk module for efficiency (single HTTP request for all ports)
-- name: Configure all port PVID and VLAN settings from template (new format - bulk)
+- name: Configure all port PVID and VLAN settings from config (new format - bulk)
   network.zyxel.zyxel_pvids:
-    port_settings: "{{ switch_template.port_vlan_settings }}"
-    num_ports: "{{ switch_template.port_vlan_settings | length }}"
+    port_settings: "{{ switch_config.port_vlan_settings }}"
+    num_ports: "{{ switch_config.port_vlan_settings | length }}"
   when:
-    - switch_template is defined
+    - switch_config is defined
     - use_new_format | default(false)
   tags: [zyxel, ports, pvid]
 
 # ============================================================
-# Apply Port Settings from Golden Config (NEW FORMAT)
+# Apply Port Settings from Config (NEW FORMAT)
 # ============================================================
 # Configure port descriptions/names from the new format
-- name: Configure port descriptions from template (new format)
+- name: Configure port descriptions from config (new format)
   network.zyxel.zyxel_port:
     name: "{{ item.key }}"
     state: "{{ 'enabled' if item.value.enabled | default(true) else 'disabled' }}"
     speed: "{{ item.value.speed | default(omit) }}"
     description: "{{ item.value.name | default(omit) }}"
-  loop: "{{ switch_template.ports | dict2items | sort(attribute='key') }}"
+  loop: "{{ switch_config.ports | dict2items | sort(attribute='key') }}"
   loop_control:
     label: "Port {{ item.key }} ({{ item.value.name | default('unnamed') }})"
   when:
-    - switch_template is defined
-    - switch_template.ports is defined
+    - switch_config is defined
+    - switch_config.ports is defined
     - use_new_format | default(false)
   tags: [zyxel, ports, config]
 
@@ -99,9 +100,9 @@
   loop_control:
     label: "Port {{ item }} PVID={{ vlans.wifiadmin.id | default(vlans.internal.id) }}"
   when:
-    - switch_template is defined
+    - switch_config is defined
     - use_legacy_format | default(false)
-    - switch_template.ports.ap_ports is defined
+    - switch_config.ports.ap_ports is defined
   tags: [zyxel, ports, pvid, legacy]
 
 - name: Configure Podium ports PVID (legacy format)
@@ -113,9 +114,9 @@
   loop_control:
     label: "Port {{ item }} PVID={{ vlans.core.id }}"
   when:
-    - switch_template is defined
+    - switch_config is defined
     - use_legacy_format | default(false)
-    - switch_template.ports.podium_ports is defined
+    - switch_config.ports.podium_ports is defined
   tags: [zyxel, ports, pvid, legacy]
 
 - name: Configure Trunk ports PVID (legacy format)
@@ -127,9 +128,9 @@
   loop_control:
     label: "Port {{ item }} PVID={{ vlans.core.id }}"
   when:
-    - switch_template is defined
+    - switch_config is defined
     - use_legacy_format | default(false)
-    - switch_template.ports.trunk_ports is defined
+    - switch_config.ports.trunk_ports is defined
   tags: [zyxel, ports, pvid, legacy]
 
 # ============================================================
@@ -172,10 +173,10 @@
       Port configuration applied to {{ inventory_hostname }}
       ═══════════════════════════════════════════════════════════
       Switch Type: {{ 'IDF' if 'idf_switches' in group_names else 'Core' if 'core_switches' in group_names else 'Podium' if 'podium_switches' in group_names else 'Special' if 'special_switches' in group_names else 'Unknown' }}
-      Template Source: {{ switch_template._meta.source_switch | default('group_vars') }}
+      Config Source: Base + Delta inheritance model
       Config Format: {{ 'New (port_vlan_settings)' if use_new_format | default(false) else 'Legacy (grouped ports)' if use_legacy_format | default(false) else 'Unknown' }}
-      Ports Configured: {{ switch_template.port_vlan_settings | default({}) | length if use_new_format | default(false) else '28 (legacy)' }}
+      Ports Configured: {{ switch_config.port_vlan_settings | default({}) | length if use_new_format | default(false) else '28 (legacy)' }}
       Port Overrides: {{ port_overrides | default({}) | length }}
-  when: switch_template is defined
+  when: switch_config is defined
   tags: [zyxel, ports, summary]
 

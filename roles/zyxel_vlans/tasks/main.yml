@@ -1,43 +1,44 @@
 # zyxel_vlans role - Configure VLANs on Zyxel switches
 # Uses HTTP API modules for reliable configuration on GS1900/GS1915/GS1920
 #
-# This role uses the golden config pattern:
-#   - Template VLANs from group_vars (idf_switch_template.vlans, etc.)
-#   - Can also use the old required_vlans format for backward compatibility
+# This role uses the Base + Delta config pattern:
+#   - VLAN data from *_switch_config (computed from networks.yml + delta)
+#   - vlan_port_membership from delta (tagged/untagged/forbidden ports)
 #
 # Connection: Requires 'httpapi' connection (set in playbook or group_vars)
 ---
 
 # ============================================================
-# Load switch template based on group membership
+# Load switch config based on group membership
+# Uses the new *_switch_config computed variables
 # ============================================================
-- name: Set switch template (IDF switches)
+- name: Set switch config (IDF switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ idf_switch_template }}"
+    switch_config: "{{ idf_switch_config }}"
   when:
     - "'idf_switches' in group_names"
-    - idf_switch_template is defined
+    - idf_switch_config is defined
 
-- name: Set switch template (Core switches)
+- name: Set switch config (Core switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ core_switch_template }}"
+    switch_config: "{{ core_switch_config }}"
   when:
     - "'core_switches' in group_names"
-    - core_switch_template is defined
+    - core_switch_config is defined
 
-- name: Set switch template (Podium switches)
+- name: Set switch config (Podium switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ podium_switch_template | default({}) }}"
+    switch_config: "{{ podium_switch_config | default({}) }}"
   when:
     - "'podium_switches' in group_names"
-    - podium_switch_template is defined
+    - podium_switch_config is defined
 
 # ============================================================
-# Configure VLANs from Golden Config Template
+# Configure VLANs from switch_config.vlan_port_membership
 # ============================================================
-# New format: switch_template.vlans is a dict like {"1": {"name": "default", ...}}
-# Include port membership (tagged, untagged, forbidden) from golden config
-- name: Configure VLANs from golden config template
+# New format: vlan_port_membership is a dict like {"1": {"name": "CORE", "tagged_ports": [...], ...}}
+# Port membership (tagged, untagged, forbidden) comes from delta config
+- name: Configure VLANs from vlan_port_membership
   network.zyxel.zyxel_vlan:
     vlan_id: "{{ item.key }}"
     name: "{{ item.value.name }}"
@@ -45,31 +46,32 @@
     untagged_ports: "{{ item.value.untagged_ports | default(omit) }}"
     forbidden_ports: "{{ item.value.forbidden_ports | default(omit) }}"
     state: present
-  loop: "{{ switch_template.vlans | default({}) | dict2items }}"
+  loop: "{{ switch_config.vlan_port_membership | default({}) | dict2items }}"
   loop_control:
     label: "VLAN {{ item.key }} ({{ item.value.name }})"
   when:
-    - switch_template is defined
-    - switch_template.vlans is defined
-    - switch_template.vlans is mapping
+    - switch_config is defined
+    - switch_config.vlan_port_membership is defined
+    - switch_config.vlan_port_membership is mapping
   tags: [zyxel, vlans, config]
 
 # ============================================================
-# Backward Compatibility: Configure VLANs from required_vlans list
+# Fallback: Configure VLANs from required_vlans list
 # ============================================================
-# Old format: switch_template.required_vlans is a list like [{"id": 1, "name": "default"}]
-- name: Configure VLANs from required_vlans list (legacy format)
+# If vlan_port_membership not available, use required_vlans list
+# (resolved from networks.yml via required_vlan_keys)
+- name: Configure VLANs from required_vlans list
   network.zyxel.zyxel_vlan:
     vlan_id: "{{ item.id }}"
     name: "{{ item.name }}"
     state: present
-  loop: "{{ switch_template.required_vlans | default([]) }}"
+  loop: "{{ switch_config.required_vlans | default([]) }}"
   loop_control:
     label: "VLAN {{ item.id }} ({{ item.name }})"
   when:
-    - switch_template is defined
-    - switch_template.required_vlans is defined
-    - switch_template.vlans is not defined
+    - switch_config is defined
+    - switch_config.required_vlans is defined
+    - switch_config.vlan_port_membership is not defined
   tags: [zyxel, vlans, config]
 
 # ============================================================
@@ -82,7 +84,8 @@
       VLAN configuration applied to {{ inventory_hostname }}
       ═══════════════════════════════════════════════════════════
       Switch Type: {{ 'IDF' if 'idf_switches' in group_names else 'Core' if 'core_switches' in group_names else 'Podium' if 'podium_switches' in group_names else 'Unknown' }}
-      VLANs Configured: {{ switch_template.vlans | default({}) | length if switch_template.vlans is defined else switch_template.required_vlans | default([]) | length }}
-  when: switch_template is defined
+      VLANs Configured: {{ switch_config.vlan_port_membership | default({}) | length if switch_config.vlan_port_membership is defined else switch_config.required_vlans | default([]) | length }}
+      Config Source: Base + Delta inheritance model
+  when: switch_config is defined
   tags: [zyxel, vlans, summary]
 

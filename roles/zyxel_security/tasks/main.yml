@@ -1,40 +1,39 @@
 # zyxel_security role - Security settings for Zyxel switches
 # Uses HTTP API modules for configuration on GS1900/GS1915/GS1920
 #
+# This role uses the Base + Delta config pattern for STP settings
+#
 # NOTE: Spanning Tree configuration via HTTP API is not fully implemented
 # in the network.zyxel collection. STP settings should be configured
 # via the web interface or will use the reference switch's existing settings.
-#
-# This role currently:
-#   - Logs the security configuration intent
-#   - Can be extended when HTTP API spanning tree support is added
 #
 # Connection: Requires 'httpapi' connection (set in playbook or group_vars)
 ---
 
 # ============================================================
-# Load switch template based on group membership
+# Load switch config based on group membership
+# Uses the new *_switch_config computed variables
 # ============================================================
-- name: Set switch template (IDF switches)
+- name: Set switch config (IDF switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ idf_switch_template | default({}) }}"
+    switch_config: "{{ idf_switch_config | default({}) }}"
   when:
     - "'idf_switches' in group_names"
-    - idf_switch_template is defined
+    - idf_switch_config is defined
 
-- name: Set switch template (Core switches)
+- name: Set switch config (Core switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ core_switch_template | default({}) }}"
+    switch_config: "{{ core_switch_config | default({}) }}"
   when:
     - "'core_switches' in group_names"
-    - core_switch_template is defined
+    - core_switch_config is defined
 
-- name: Set switch template (Podium switches)
+- name: Set switch config (Podium switches)
   ansible.builtin.set_fact:
-    switch_template: "{{ podium_switch_template | default({}) }}"
+    switch_config: "{{ podium_switch_config | default({}) }}"
   when:
     - "'podium_switches' in group_names"
-    - podium_switch_template is defined
+    - podium_switch_config is defined
 
 # ============================================================
 # Security Module Configuration (when available)
@@ -56,6 +55,7 @@
       Security configuration for {{ inventory_hostname }}
       ═══════════════════════════════════════════════════════════
       Switch Type: {{ 'IDF' if 'idf_switches' in group_names else 'Core' if 'core_switches' in group_names else 'Podium' if 'podium_switches' in group_names else 'Unknown' }}
+      Config Source: Base + Delta inheritance model
 
       NOTE: Spanning Tree HTTP API configuration is not yet implemented
       in the network.zyxel collection.
@@ -64,8 +64,9 @@
       To modify STP settings, use the switch web interface:
         https://{{ ansible_host }}/
 
-      Expected STP settings from template:
-      - Mode: {{ switch_template.spanning_tree.mode | default('rstp') }}
-      - Priority: {{ switch_template.spanning_tree.priority | default('default') }}
+      Expected STP settings from config:
+      - Mode: {{ switch_config.spanning_tree.mode | default('rstp') }}
+      - Priority: {{ switch_config.spanning_tree.priority | default('default') }}
+  when: switch_config is defined
   tags: [zyxel, security, summary]
 
