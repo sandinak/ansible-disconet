@@ -1,0 +1,55 @@
+# WAP Golden Configuration - wax210
+# Pulled from: wap-pod1
+# Pull date: 20260119-203038
+# Target group: wax210
+#
+# Cleaned to only include active SSIDs
+# Passphrases stored in vault as wap_ssid_<name>_passphrase
+---
+
+# Metadata about this golden config
+wap_golden_config_meta:
+  source_wap: "wap-pod1"
+  pulled_at: "20260119-203038"
+  wap_type: "wax210"
+
+# System configuration
+# Note: ap_name will be overridden per-device in sync playbook
+wap_system:
+  mgmt_interface_5g: false
+  mgmt_interface_2g: false
+
+# Radio configuration
+wap_radio:
+  channel_2g: "auto"
+  channel_5g: "36"
+
+# Active SSID configurations (enabled only)
+# Each SSID configured on both 2.4GHz and 5GHz unless specified
+wap_ssids:
+  - name: "JTW"
+    encryption: "sae-mixed+ccmp"
+    vlan: "vlan116"
+    isolation: true
+    hidden: false
+    radio: "both"
+    enabled: true
+    passphrase: "{{ ssid_jtw_passphrase }}"
+
+  - name: "VOV"
+    encryption: "psk2"
+    vlan: "vlan121"
+    isolation: true
+    hidden: false
+    radio: "both"
+    enabled: true
+    passphrase: "{{ ssid_vov_passphrase }}"
+
+  - name: "SPEAKER"
+    encryption: "sae-mixed+ccmp"
+    vlan: "vlan119"
+    isolation: true
+    hidden: false
+    radio: "both"
+    enabled: true
+    passphrase: "{{ ssid_speaker_passphrase }}"

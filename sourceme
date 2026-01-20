@@ -102,6 +102,9 @@ fi
 # Set up aliases (works in both bash and zsh)
 alias ap='ansible-playbook'
 alias ai='ansible-inventory'
+alias av='ansible-vault'
+
+export ANSIBLE_VAULT_PASSWORD_FILE=~/.ssh/ansible_vault
 
 # Display environment info
 echo ""

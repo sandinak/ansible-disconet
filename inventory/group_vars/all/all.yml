@@ -5,10 +5,10 @@ disconet:
   domain: disconet.work
   routed_network: 172.19.0.0/16
   dns_servers:
-    - 172.19.3.1  # Public services VLAN
+    - 172.19.1.1  # Public services VLAN
     - 1.1.1.1
   ntp_servers:
-    - 172.19.3.1  # Public services VLAN
+    - 172.19.1.1  # Public services VLAN
     - time.cloudflare.com
     - pool.ntp.org
   syslog_server: syslog.disconet.work
@@ -17,3 +17,8 @@ disconet:
 admin_password: "{{ vault_admin_password }}"
 vhid_password: "{{ vault_vhid_password }}"
 wap_password: "{{ vault_wap_password }}"
+
+# SSID passphrases (sourced from vault.yml)
+ssid_jtw_passphrase: "{{ vault_ssid_jtw_passphrase }}"
+ssid_vov_passphrase: "{{ vault_ssid_vov_passphrase }}"
+ssid_speaker_passphrase: "{{ vault_ssid_speaker_passphrase }}"
