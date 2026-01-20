@@ -30,7 +30,7 @@
 
     # System configuration (AP name from host_vars or derived from hostname)
     - name: Configure system settings
-      sandinak.netgear_wap.netgear_wax210_system:
+      sandinak.netgear_wap.netgear_wax_system:
         host: "{{ ansible_host }}"
         password: "{{ wap_password }}"
         ap_name: "{{ wap_ap_name | default(inventory_hostname | regex_replace('\\..*', '') | upper | replace('-', '')) }}"
@@ -44,7 +44,7 @@
 
     # Radio configuration
     - name: Configure radio settings
-      sandinak.netgear_wap.netgear_wax210_radio:
+      sandinak.netgear_wap.netgear_wax_radio:
         host: "{{ ansible_host }}"
         password: "{{ wap_password }}"
         channel_2g: "{{ wap_radio.channel_2g | default('auto') }}"
@@ -57,7 +57,7 @@
 
     # SSID configuration
     - name: Configure SSIDs
-      sandinak.netgear_wap.netgear_wax210_wireless:
+      sandinak.netgear_wap.netgear_wax_wireless:
         host: "{{ ansible_host }}"
         password: "{{ wap_password }}"
         ssid_name: "{{ item.name }}"
