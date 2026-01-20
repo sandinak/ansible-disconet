@@ -26,6 +26,11 @@ collections:
   # This requires the ansible-zyxel repo to be cloned at ../ansible-zyxel
   # Clone with: git clone git@github.com:sandinak/ansible-zyxel.git ../ansible-zyxel
 
+  # Netgear WAP management (custom collection)
+  # Install from local ansible-netgear-wap repository using: make install-wap-collection
+  # This requires the ansible-netgear-wap repo to be cloned at ../ansible-netgear-wap
+  # Clone with: git clone git@github.com:sandinak/ansible-netgear-wap.git ../ansible-netgear-wap
+
   # POSIX utilities
   - name: ansible.posix
     version: ">=1.5.0"

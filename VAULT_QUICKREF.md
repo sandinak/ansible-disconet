@@ -23,7 +23,7 @@ Stored in: `.vault_pass` (not committed to git)
 - **File**: `inventory/group_vars/zyxel/vault.yml`
 - **Username**: `admin`
 - **Password variable**: `vault_zyxel_password`
-- **Value**: `***REMOVED***`
+- **Value**: `r0llerDizk0Bawtms`
 
 ## Running Playbooks
 

@@ -9,10 +9,10 @@ management_ip: 172.19.1.30
 location: "Core Network"
 role: hypervisor
 
-# Credentials
+# Credentials (from vault via all.yml)
 ansible_user: admin
-# ansible_password: should be in vault
+ansible_password: "{{ admin_password }}"
 
 # Notes
-notes: "Proxmox hypervisor - admin / REDACTED"
+notes: "Proxmox hypervisor"
 

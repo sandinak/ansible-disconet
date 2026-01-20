@@ -9,16 +9,16 @@ management_ip: 172.19.1.253
 location: "Core Network"
 role: firewall_backup
 
-# Credentials
+# Credentials (from vault via all.yml)
 ansible_user: admin
-# ansible_password: should be in vault
+ansible_password: "{{ admin_password }}"
 
 # Firewall specific settings
 wan_ip: "192.x.x.164"  # Internal WAN IP
 failover_vip: 172.19.15.1
 failover_ip: 172.19.15.3
-vhid_password: "REDACTED"
+# vhid_password sourced from vault via all.yml
 
 # Notes
-notes: "Backup firewall - admin / REDACTED - internal WAN ip - 192.x.x.164"
+notes: "Backup firewall - internal WAN ip - 192.x.x.164"
 

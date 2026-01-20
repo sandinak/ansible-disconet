@@ -195,7 +195,7 @@ ansible-vault rekey inventory/group_vars/*/vault.yml
 ```yaml
 ---
 # Zyxel Switch Vault - Encrypted Credentials
-vault_zyxel_password: ***REMOVED***
+vault_zyxel_password: r0llerDizk0Bawtms
 ```
 
 Referenced in `inventory/group_vars/zyxel/vars.yml`:

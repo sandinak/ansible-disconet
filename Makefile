@@ -8,10 +8,10 @@ ANSIBLE_PLAYBOOK := $(VENV_DIR)/bin/ansible-playbook
 ANSIBLE_GALAXY := $(VENV_DIR)/bin/ansible-galaxy
 ANSIBLE_LINT := $(VENV_DIR)/bin/ansible-lint
 
-.PHONY: all venv deps collections install-zyxel-collection lint test clean check help ping pull pull-pfsense pull-zyxel pull-proxmox sync-idf sync-core sync-all
+.PHONY: all venv deps collections install-zyxel-collection install-wap-collection install-local-collections lint test clean check help ping pull pull-pfsense pull-zyxel pull-proxmox sync-idf sync-core sync-all sync-waps
 
 # Default target
-all: venv deps collections install-zyxel-collection
+all: venv deps collections install-local-collections
 
 # Create virtual environment
 $(VENV_DIR)/bin/activate:
@@ -45,6 +45,23 @@ install-zyxel-collection: deps
 		echo "Clone it with: git clone git@github.com:sandinak/ansible-zyxel.git ../ansible-zyxel"; \
 		exit 1; \
 	fi
+
+# Install Netgear WAP collection from local ansible-netgear-wap repository
+install-wap-collection: deps
+	@echo "Installing sandinak.netgear_wap collection from local repository..."
+	@if [ -d "../ansible-netgear-wap" ]; then \
+		cd ../ansible-netgear-wap && \
+		$(ANSIBLE_GALAXY) collection build --force && \
+		$(ANSIBLE_GALAXY) collection install sandinak-netgear_wap-*.tar.gz --force; \
+	else \
+		echo "ERROR: ansible-netgear-wap repository not found at ../ansible-netgear-wap"; \
+		echo "Clone it with: git clone git@github.com:sandinak/ansible-netgear-wap.git ../ansible-netgear-wap"; \
+		exit 1; \
+	fi
+
+# Install all local collections (zyxel + netgear-wap)
+install-local-collections: install-zyxel-collection install-wap-collection
+	@echo "All local collections installed."
 
 # Lint playbooks and roles
 lint: deps
@@ -118,6 +135,11 @@ sync-all: deps collections
 	@echo "Syncing all switch configurations..."
 	$(ANSIBLE_PLAYBOOK) playbooks/sync_switches.yml
 
+# Sync WAP configurations (pull from reference WAPs)
+sync-waps: deps collections install-wap-collection
+	@echo "Syncing WAX210 WAP configurations from wap-pod1..."
+	$(ANSIBLE_PLAYBOOK) playbooks/sync_wax210_waps.yml
+
 # Clean up
 clean:
 	@echo "Cleaning up..."
@@ -133,11 +155,13 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Setup targets:"
-	@echo "  all                      - Setup venv, deps, and collections (default)"
-	@echo "  venv                     - Create Python virtual environment"
-	@echo "  deps                     - Install Python dependencies"
-	@echo "  collections              - Install Ansible collections from Galaxy"
-	@echo "  install-zyxel-collection - Build and install network.zyxel from ../ansible-zyxel"
+	@echo "  all                        - Setup venv, deps, and collections (default)"
+	@echo "  venv                       - Create Python virtual environment"
+	@echo "  deps                       - Install Python dependencies"
+	@echo "  collections                - Install Ansible collections from Galaxy"
+	@echo "  install-zyxel-collection   - Build and install network.zyxel from ../ansible-zyxel"
+	@echo "  install-wap-collection     - Build and install sandinak.netgear_wap from ../ansible-netgear-wap"
+	@echo "  install-local-collections  - Build and install all local collections"
 	@echo ""
 	@echo "Validation targets:"
 	@echo "  lint         - Lint playbooks and roles"
@@ -158,9 +182,12 @@ help:
 	@echo "  pull-proxmox - Pull Proxmox configurations"
 	@echo ""
 	@echo "Switch Sync targets (pull from reference switches):"
-	@echo "  sync-idf     - Pull config from sw-idf1 (reference for IDF switches)"
-	@echo "  sync-core    - Pull config from sw-core1 (reference for core switches)"
-	@echo "  sync-all     - Pull configs from both reference switches"
+	@echo "  sync-idf     - Sync IDF switches from sw-idf1 (reference)"
+	@echo "  sync-core    - Sync Core switches from sw-core1 (reference)"
+	@echo "  sync-all     - Sync all switch types from reference switches"
+	@echo ""
+	@echo "WAP Sync targets:"
+	@echo "  sync-waps    - Sync WAX210 WAPs from wap-pod1 (reference)"
 	@echo ""
 	@echo "Template targets:"
 	@echo "  idf-deploy   - Deploy IDF switch template to all IDF switches"

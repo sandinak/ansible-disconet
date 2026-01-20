@@ -9,10 +9,10 @@ management_ip: 172.19.0.1
 location: "Core Network"
 role: router
 
-# Credentials
+# Credentials (from vault via all.yml)
 ansible_user: admin
-# ansible_password: should be in vault
+ansible_password: "{{ admin_password }}"
 
 # Notes
-notes: "Metered 10G 5G connection - Default last octets - admin / REDACTED"
+notes: "Metered 10G 5G connection - Default last octets"
 

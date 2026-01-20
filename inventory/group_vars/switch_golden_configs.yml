@@ -1,9 +1,9 @@
-# Golden Config Group Variables
+# Switch Golden Config Group Variables
 # Switches in this group are the authoritative sources for their switch type.
 #
 # Usage:
 #   Pull config from all golden switches:
-#     ansible-playbook playbooks/pull_golden_config.yml -l golden_config
+#     ansible-playbook playbooks/pull_golden_config.yml -l switch_golden_configs
 #
 #   Pull config from a specific golden switch:
 #     ansible-playbook playbooks/pull_golden_config.yml -l sw-idf1.disconet.work

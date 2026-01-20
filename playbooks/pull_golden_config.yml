@@ -11,13 +11,13 @@
 #
 # Usage:
 #   Pull from all golden config switches:
-#     ansible-playbook playbooks/pull_golden_config.yml -l golden_config
+#     ansible-playbook playbooks/pull_golden_config.yml -l switch_golden_configs
 #
 #   Pull from a specific golden switch:
 #     ansible-playbook playbooks/pull_golden_config.yml -l sw-idf1.disconet.work
 
 - name: Pull Golden Configuration from Reference Switches
-  hosts: golden_config
+  hosts: switch_golden_configs
   gather_facts: false
   vars:
     ansible_connection: httpapi

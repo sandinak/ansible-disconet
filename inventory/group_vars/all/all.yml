@@ -13,4 +13,7 @@ disconet:
     - pool.ntp.org
   syslog_server: syslog.disconet.work
 
-
+# Common credentials (sourced from vault.yml)
+admin_password: "{{ vault_admin_password }}"
+vhid_password: "{{ vault_vhid_password }}"
+wap_password: "{{ vault_wap_password }}"

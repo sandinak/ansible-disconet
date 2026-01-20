@@ -10,10 +10,10 @@ switch_management_ip: 172.19.1.16
 switch_location: "Core Network - Backup"
 switch_role: core_backup
 
-# Credentials
+# Credentials (from vault via all.yml)
 ansible_user: admin
-# ansible_password: should be in vault
+ansible_password: "{{ admin_password }}"
 
 # Switch specific notes
-notes: "Backup core switch - admin / REDACTED"
+notes: "Backup core switch"
 

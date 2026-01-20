@@ -1,0 +1,15 @@
+# WAP Golden Config Group Variables
+# WAPs in this group are the authoritative sources for their WAP type.
+#
+# Usage:
+#   Pull config from all golden WAPs:
+#     ansible-playbook playbooks/pull_wap_golden_config.yml -l wap_golden_configs
+#
+#   Pull config from a specific golden WAP:
+#     ansible-playbook playbooks/pull_wap_golden_config.yml -l wap-pod1
+#
+# Golden config mappings:
+#   wap-pod1 (WAX210) -> wax210 template
+---
+is_golden_config: true
+

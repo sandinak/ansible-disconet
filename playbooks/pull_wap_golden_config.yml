@@ -1,0 +1,110 @@
+---
+# Pull Golden Configuration from Reference WAPs
+# This playbook extracts configuration from reference WAPs and writes
+# it to group_vars as templates that can be applied to other WAPs.
+#
+# Golden config reference WAPs (defined in inventory):
+#   - wap-pod1 (WAX210) -> group_vars/wax210.yml
+#
+# Usage:
+#   Pull from all golden config WAPs:
+#     ansible-playbook playbooks/pull_wap_golden_config.yml -l wap_golden_configs
+#
+#   Pull from a specific golden WAP:
+#     ansible-playbook playbooks/pull_wap_golden_config.yml -l wap-pod1
+
+- name: Pull Golden Configuration from Reference WAPs
+  hosts: wap_golden_configs
+  gather_facts: false
+  vars:
+    inventory_dir: "{{ playbook_dir }}/../inventory"
+    timestamp: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+
+  tasks:
+    - name: Determine WAP type and output file from inventory vars
+      ansible.builtin.set_fact:
+        wap_type: "{{ golden_config_for }}"
+        output_file: "{{ golden_template_file | basename }}"
+
+    - name: Get wireless SSID configuration
+      sandinak.netgear_wap.netgear_wax210_info:
+        host: "{{ ansible_host }}"
+        password: "{{ wap_password }}"
+      register: wireless_info
+      delegate_to: localhost
+
+    - name: Get system configuration (check mode to read only)
+      sandinak.netgear_wap.netgear_wax210_system:
+        host: "{{ ansible_host }}"
+        password: "{{ wap_password }}"
+      check_mode: true
+      register: system_info
+      delegate_to: localhost
+
+    - name: Get radio configuration (check mode to read only)
+      sandinak.netgear_wap.netgear_wax210_radio:
+        host: "{{ ansible_host }}"
+        password: "{{ wap_password }}"
+      check_mode: true
+      register: radio_info
+      delegate_to: localhost
+
+    - name: Build golden config template
+      ansible.builtin.set_fact:
+        wap_golden_config:
+          _meta:
+            pulled_from: "{{ inventory_hostname }}"
+            pulled_at: "{{ timestamp }}"
+            wap_type: "{{ wap_type }}"
+            target_group: "{{ golden_config_for }}"
+          ssids: "{{ wireless_info.ssids | default([]) }}"
+          system: "{{ system_info.config | default({}) }}"
+          radio: "{{ radio_info.config | default({}) }}"
+
+    - name: Display pulled configuration summary
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          Golden Config Pulled from {{ inventory_hostname }}
+          ═══════════════════════════════════════════════════════════
+          WAP Type: {{ wap_type }}
+          Output File: {{ output_file }}
+
+          SSIDs: {{ wireless_info.ssids | default([]) | length }}
+          System Config: {{ system_info.config | default({}) | length }} settings
+          Radio Config: {{ radio_info.config | default({}) | length }} settings
+
+          Configuration will be written to:
+            {{ inventory_dir }}/group_vars/{{ output_file }}
+
+    - name: Write golden config to group_vars
+      ansible.builtin.template:
+        src: wap_golden_config_template.yml.j2
+        dest: "{{ inventory_dir }}/group_vars/{{ output_file }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Backup previous config
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/group_vars/{{ output_file }}"
+        dest: "{{ inventory_dir }}/group_vars/{{ output_file }}.{{ timestamp }}.bak"
+        mode: '0644'
+      delegate_to: localhost
+      ignore_errors: true
+
+- name: Summary
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Display summary
+      ansible.builtin.debug:
+        msg: |
+          ═══════════════════════════════════════════════════════════
+          WAP Golden Configuration Pull Complete
+          ═══════════════════════════════════════════════════════════
+
+          Reference configurations have been pulled and saved to group_vars.
+
+          To apply this configuration to other WAPs:
+            ansible-playbook playbooks/sync_wax210_waps.yml
+
