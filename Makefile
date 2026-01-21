@@ -30,7 +30,7 @@ deps: venv
 # Install Ansible collections
 collections: deps
 	@echo "Installing Ansible collections..."
-	$(ANSIBLE_GALAXY) collection install -r requirements.yml --force
+	$(ANSIBLE_GALAXY) collection install -r requirements.yml # --force
 	@touch $(VENV_DIR)/.collections_installed
 
 # Install Zyxel collection from local ansible-zyxel repository
